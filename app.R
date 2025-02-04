@@ -10,20 +10,18 @@ leg <- read_excel("data/legislatives_2024.xlsx", col_names = TRUE)
 # Import carte
 leg_carte <- st_read("data/contours_circo.shp")
 
-# Coordonnées des frontières
-st_coordinates(leg_carte)
+# suppression des 0 à gauche
+leg_carte <- leg_carte |> 
+  mutate(id_circo = str_remove(id_circo, "^0+"))
+
+# jointure dataframes
+legislatives <- left_join(leg, leg_carte, by = c("Code circonscription législative" = "id_circo"))
 
 # Carte interactive
 leaflet(leg_carte) |>
   addTiles() |>  # Fond de carte par défaut
   addPolygons()  # Polygons représentant les circonscriptions
 
-# suppression des 0 à gauche
-leg_carte <- leg_carte |> 
-  mutate(id_circo = str_remove(id_circo, "^0+"))
-
-# jointure dataframes
-legislatives <- left_join(leg_donnees,leg_carte, by = c("Code circonscription législative" = "id_circo"))
 
 # colonnes à sélectionner 
 colonnes <- c(
@@ -53,10 +51,8 @@ colonnes <- c(
 )
 
 legislatives <- legislatives |> 
-  select(colonnes)
+  select(all_of(colonnes))
 
 
-
-test 
 
 
