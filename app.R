@@ -58,10 +58,18 @@ legislatives <- legislatives |>
 
 # Onglet 2 : Florian
 
-## Carte interactive
+library(sf)
 
-leaflet(leg_carte) |>
-  addTiles() |>  # Fond de carte par défaut
+#legislatives <- st_as_sf(legislatives, wkt = "geometry", crs = 4326)
+
+
+
+leaflet(legislatives) |> 
+  addTiles() |>  
+  addPolygons()
+
+leaflet(legislatives) |> 
+  addTiles() |>  
   addPolygons(
     label = lapply(1:nrow(legislatives), function(i) {
       sprintf(
@@ -75,7 +83,10 @@ leaflet(leg_carte) |>
              <div style='width:50%%; height:30px; background-color:orange; color:white;'>%s</div>
            </div>
          </div>",
-        legislatives$val1[i], legislatives$val2[i], legislatives$val3[i], legislatives$val4[i]
+        legislatives$libelle[i], 
+        legislatives$`Nom candidat 1`[i],
+        legislatives$`Nom candidat 2`[i],  # Ajout d'un 3e champ
+        legislatives$`Nom candidat 3`[i]   # Ajout d'un 4e champ
       )
     }) |> lapply(htmltools::HTML),  
     labelOptions = labelOptions(
@@ -85,10 +96,6 @@ leaflet(leg_carte) |>
       direction = "auto"
     )
   )
-# Polygons représentant les circonscriptions
-  
-
-
 
 
 
