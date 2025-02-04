@@ -13,19 +13,17 @@ leg_carte <- st_read("data/contours_circo.shp")
 # Coordonnées des frontières
 st_coordinates(leg_carte)
 
-# Carte interactif
+# Carte interactive
 leaflet(leg_carte) |>
   addTiles() |>  # Fond de carte par défaut
   addPolygons()  # Polygons représentant les circonscriptions
-
-leg_donnees <- read_excel("legislatives.xlsx", col_names = TRUE)
 
 # suppression des 0 à gauche
 leg_carte <- leg_carte |> 
   mutate(id_circo = str_remove(id_circo, "^0+"))
 
+# jointure dataframes
 legislatives <- left_join(leg_donnees,leg_carte, by = c("Code circonscription législative" = "id_circo"))
-
 
 # colonnes à sélectionner 
 colonnes <- c(
