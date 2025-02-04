@@ -17,11 +17,6 @@ leg_carte <- leg_carte |>
 # jointure dataframes
 legislatives <- left_join(leg, leg_carte, by = c("Code circonscription législative" = "id_circo"))
 
-# Carte interactive
-leaflet(leg_carte) |>
-  addTiles() |>  # Fond de carte par défaut
-  addPolygons()  # Polygons représentant les circonscriptions
-
 
 # colonnes à sélectionner 
 colonnes <- c(
@@ -53,6 +48,7 @@ colonnes <- c(
 legislatives <- legislatives |> 
   select(all_of(colonnes))
 
+
 # Onglet 1 :
 
 
@@ -62,8 +58,35 @@ legislatives <- legislatives |>
 
 # Onglet 2 : Florian
 
+## Carte interactive
 
-
+leaflet(leg_carte) |>
+  addTiles() |>  # Fond de carte par défaut
+  addPolygons(
+    label = lapply(1:nrow(legislatives), function(i) {
+      sprintf(
+        "<div style='width:120px; text-align:center;'>
+           <div style='display:flex;'>
+             <div style='width:50%%; height:30px; background-color:red; color:white;'>%s</div>
+             <div style='width:50%%; height:30px; background-color:blue; color:white;'>%s</div>
+           </div>
+           <div style='display:flex;'>
+             <div style='width:50%%; height:30px; background-color:green; color:white;'>%s</div>
+             <div style='width:50%%; height:30px; background-color:orange; color:white;'>%s</div>
+           </div>
+         </div>",
+        legislatives$val1[i], legislatives$val2[i], legislatives$val3[i], legislatives$val4[i]
+      )
+    }) |> lapply(htmltools::HTML),  
+    labelOptions = labelOptions(
+      style = list(
+        "background-color" = "white", "border" = "1px solid black", "padding" = "5px"
+      ),
+      direction = "auto"
+    )
+  )
+# Polygons représentant les circonscriptions
+  
 
 
 
