@@ -53,6 +53,103 @@ colonnes <- c(
 legislatives <- legislatives |> 
   select(all_of(colonnes))
 
+# Onglet 1 :
+
+
+
+
+
+
+# Onglet 2 : Florian
+
+
+
+
+
+
+
+
+# Onglet 3 :
+
+
+
+
+
+
+
+# Onglet 4 :
+
+
+
+
+
+
+
+
+# Onglet 5 : Juliette
+
+
+
+
+
+
+
+
+
+
+#---- app principale ------
+
+library(shiny)
+
+ui<-fluidPage(
+  fluidRow(
+    tabsetPanel(
+      tabPanel(
+        "Onglet un"
+      ),
+      tabPanel("Onglet deux"),
+      tabPanel("Onglet trois"),
+      tabPanel(
+        "onglet quatre"
+      ),
+      tabPanel(
+        "onglet cinq"
+      )
+    )
+  ),
+  fluidRow(
+    column(6,
+           "truc"
+    ),
+    column(6,
+           "machin"
+    )
+  )
+)
+
+# Define server logic required to draw a histogram
+server <- function(input, output, session) {
+  output$distPlot <- renderPlot({
+    # generate bins based on input$bins from ui.R
+    x <- faithful[, 2]
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    # draw the histogram with the specified number of bins
+    hist(x,
+         breaks = bins, col = "lightblue", border = "white",
+         xlab = "Temps d'attente avant le prochain jet (en minutes)",
+         ylab = "Fréquence",
+         main = "Histogramme du temps d'attente"
+    )
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+
+
+# ----------------
+
 
 
 
