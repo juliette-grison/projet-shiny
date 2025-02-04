@@ -4,7 +4,11 @@ library(readxl)
 library(tidyverse)
 library(leaflet)
 
-leg_carte <- st_read("C:/Users/flori/Documents/FLORIAN/STUDIES/UNIV/2. MASTER/MASTER 1/Dataviz R-Shiny/application/contours_circo.shp")
+# Import base de données
+leg <- read_excel("data/legislatives_2024.xlsx", col_names = TRUE)
+
+# Import carte
+leg_carte <- st_read("data/contours_circo.shp")
 
 # Coordonnées des frontières
 st_coordinates(leg_carte)
