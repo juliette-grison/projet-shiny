@@ -58,45 +58,38 @@ legislatives <- legislatives |>
 
 # Onglet 2 : Florian
 
-library(sf)
-
-#legislatives <- st_as_sf(legislatives, wkt = "geometry", crs = 4326)
 
 
+# Créer un texte de popup formaté avec les noms et prénoms des 19 candidats
+legislatives$popup_content <- apply(legislatives, 1, function(row) {
+  # Initialiser avec le libelle (nom de la circonscription)
+  popup_text <- row["libelle"]
+  
+  # Stocker les candidats dans un vecteur
+  candidats <- c()
+  
+  for (i in 1:19) {
+    nom_col <- paste("Nom candidat", i)
+    prenom_col <- paste("Prénom candidat", i)
+    
+    # Ajouter le nom et prénom si les colonnes existent et ne sont pas NA
+    if (!is.na(row[[nom_col]]) && !is.na(row[[prenom_col]])) {
+      candidats <- c(candidats, sprintf("%s %s", row[[nom_col]], row[[prenom_col]]))
+    }
+  }
+  
+  # Coller les candidats avec des sauts de ligne
+  paste(c(popup_text, candidats), collapse = "\n")
+})
 
-leaflet(legislatives) |> 
-  addTiles() |>  
-  addPolygons()
 
-leaflet(legislatives) |> 
+
+# Utiliser leaflet pour afficher les polygones et ajouter des popups avec les noms et prénoms
+leaflet(legislatives$geometry) |> 
   addTiles() |>  
   addPolygons(
-    label = lapply(1:nrow(legislatives), function(i) {
-      sprintf(
-        "<div style='width:120px; text-align:center;'>
-           <div style='display:flex;'>
-             <div style='width:50%%; height:30px; background-color:red; color:white;'>%s</div>
-             <div style='width:50%%; height:30px; background-color:blue; color:white;'>%s</div>
-           </div>
-           <div style='display:flex;'>
-             <div style='width:50%%; height:30px; background-color:green; color:white;'>%s</div>
-             <div style='width:50%%; height:30px; background-color:orange; color:white;'>%s</div>
-           </div>
-         </div>",
-        legislatives$libelle[i], 
-        legislatives$`Nom candidat 1`[i],
-        legislatives$`Nom candidat 2`[i],  # Ajout d'un 3e champ
-        legislatives$`Nom candidat 3`[i]   # Ajout d'un 4e champ
-      )
-    }) |> lapply(htmltools::HTML),  
-    labelOptions = labelOptions(
-      style = list(
-        "background-color" = "white", "border" = "1px solid black", "padding" = "5px"
-      ),
-      direction = "auto"
-    )
+    popup = legislatives$popup_content  # Utiliser directement les données pour le popup
   )
-
 
 
 # Onglet 3 :
