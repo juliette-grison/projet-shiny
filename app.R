@@ -11,14 +11,13 @@ leg <- read_excel("data/legislatives_2024.xlsx", col_names = TRUE)
 leg_carte <- st_read("data/contours_circo.shp")
 
 # suppression des 0 à gauche
-leg_carte <- leg_carte |> 
+leg_carte <- leg_carte |>
   mutate(id_circo = str_remove(id_circo, "^0+"))
 
 # jointure dataframes
 legislatives <- left_join(leg, leg_carte, by = c("Code circonscription législative" = "id_circo"))
 
-
-# colonnes à sélectionner 
+# colonnes à sélectionner
 colonnes <- c(
   "Code département", "Libellé département",
   "Code circonscription législative",
@@ -45,8 +44,10 @@ colonnes <- c(
   "geometry"
 )
 
-legislatives <- legislatives |> 
+legislatives <- legislatives |>
   select(all_of(colonnes))
+
+
 
 
 # Onglet 1 :
@@ -64,31 +65,33 @@ library(htmltools)
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
   # Début du tableau HTML
   popup_text <- sprintf("<strong>%s</strong><br><table border='1' style='border-collapse: collapse;'>", row["libelle"])
-  
+
   # Ajouter les candidats au tableau
   for (i in 1:19) {
     nom_col <- paste("Nom candidat", i)
     prenom_col <- paste("Prénom candidat", i)
-    
+
     if (!is.na(row[[nom_col]]) && !is.na(row[[prenom_col]])) {
       popup_text <- paste0(popup_text, sprintf("<tr><td>%s</td><td>%s</td></tr>", row[[prenom_col]], row[[nom_col]]))
     }
   }
-  
+
   # Fin du tableau
   popup_text <- paste0(popup_text, "</table>")
-  
+
   return(HTML(popup_text)) # Convertir en HTML
 })
 
 
 
 # Utiliser leaflet pour afficher les polygones et ajouter des popups avec les noms et prénoms
-leaflet(legislatives$geometry) |> 
-  addTiles() |>  
+leaflet(legislatives$geometry) |>
+  addTiles() |>
   addPolygons(
-    popup = legislatives$popup_content  # Utiliser directement les données pour le popup
+    popup = legislatives$popup_content # Utiliser directement les données pour le popup
   )
+
+
 
 
 
@@ -127,12 +130,14 @@ legislatives_resultats <- legislatives |>
   pivot_longer(cols = starts_with("Nuance candidat"), names_to = "Nuance", values_to = "Parti") |>
   pivot_longer(cols = starts_with("Nom candidat"), names_to = "Nom_col", values_to = "Nom") |>
   pivot_longer(cols = starts_with("Prénom candidat"), names_to = "Prenom_col", values_to = "Prenom") |>
-  filter(substr(Candidat, 5, 100) == substr(Nuance, 16, 100),
-         substr(Candidat, 5, 100) == substr(Nom_col, 5, 100),
-         substr(Candidat, 5, 100) == substr(Prenom_col, 8, 100)) |>
+  filter(
+    substr(Candidat, 5, 100) == substr(Nuance, 16, 100),
+    substr(Candidat, 5, 100) == substr(Nom_col, 5, 100),
+    substr(Candidat, 5, 100) == substr(Prenom_col, 8, 100)
+  ) |>
   filter(Elu == "2lu") |>
   select(Circonscription, Prenom, Nom, Parti) |>
-  distinct() 
+  distinct()
 
 print(legislatives_resultats)
 
@@ -143,8 +148,8 @@ library(ggforce)
 
 # Exemple de données
 resultats_assemblee <- data.frame(
-  Parti = c("Nouveau Front Populaire", "Gauche", "Ensemble", "Centre","Régionalistes", "Les Républicains", "Droite", "Rassemblement National", "Divers"),
-  Sieges = c(182, 13, 168, 6, 4, 46, 14, 143, 1),  # Remplace par les valeurs réelles
+  Parti = c("Nouveau Front Populaire", "Gauche", "Ensemble", "Centre", "Régionalistes", "Les Républicains", "Droite", "Rassemblement National", "Divers"),
+  Sieges = c(182, 13, 168, 6, 4, 46, 14, 143, 1), # Remplace par les valeurs réelles
   Couleur = c("firebrick4", "firebrick1", "gold", "gold3", "lightgoldenrod4", "dodgerblue", "dodgerblue3", "navy", "gray47") # Couleurs pour chaque parti
 )
 
@@ -152,30 +157,31 @@ resultats_assemblee <- data.frame(
 # Calcul des positions pour le demi-cercle
 resultats_assemblee <- resultats_assemblee |>
   mutate(
-    start = pi * cumsum(lag(Sieges, default = 0)) / sum(Sieges) - pi/2,  # Rotation -90°
-    end = pi * cumsum(Sieges) / sum(Sieges) - pi/2  # Rotation -90°
+    start = pi * cumsum(lag(Sieges, default = 0)) / sum(Sieges) - pi / 2, # Rotation -90°
+    end = pi * cumsum(Sieges) / sum(Sieges) - pi / 2 # Rotation -90°
   )
 
 # Créer le graphique demi-circulaire
 ggplot(resultats_assemblee) +
   geom_arc_bar(
     aes(
-      x0 = 0, y0 = 0, r0 = 0.5, r = 1,  # Position du demi-cercle
-      start = start,  
-      end = end,  
+      x0 = 0, y0 = 0, r0 = 0.5, r = 1, # Position du demi-cercle
+      start = start,
+      end = end,
       fill = Parti
     ),
     color = "white"
   ) +
-  scale_fill_manual(values = setNames(resultats_assemblee$Couleur, resultats_assemblee$Parti)) + 
-  coord_fixed() +  
-  theme_void() +  
-  labs(title = "Répartition des sièges à l’Assemblée nationale",
-       caption = "Source : Le Monde (2024)"
-       ) +
+  scale_fill_manual(values = setNames(resultats_assemblee$Couleur, resultats_assemblee$Parti)) +
+  coord_fixed() +
+  theme_void() +
+  labs(
+    title = "Répartition des sièges à l’Assemblée nationale",
+    caption = "Source : Le Monde (2024)"
+  ) +
   theme(
-    plot.title = element_text(hjust = 0.5),  # Centrer le titre
-    plot.caption = element_text(hjust = 0.5)  # Centrer la sous-légende
+    plot.title = element_text(hjust = 0.5), # Centrer le titre
+    plot.caption = element_text(hjust = 0.5) # Centrer la sous-légende
   )
 
 ### Essai avec des points
@@ -184,7 +190,7 @@ seats <- rep(resultats_assemblee$Parti, resultats_assemblee$Sieges)
 
 # Création de la data frame pour les points
 seats_data <- data.frame(
-  Seat = 1:577, 
+  Seat = 1:577,
   Parti = seats,
   Couleur = rep(resultats_assemblee$Couleur, resultats_assemblee$Sieges)
 )
@@ -192,23 +198,23 @@ seats_data <- data.frame(
 # Calcul des coordonnées (position des points sur le demi-cercle horizontal)
 seats_data <- seats_data %>%
   mutate(
-    angle = pi * (Seat - 1) / 577,  # Angle de 0 à pi pour un demi-cercle de gauche à droite
-    x = cos(angle),   # Coordonnée X
-    y = sin(angle)    # Coordonnée Y
+    angle = pi * (Seat - 1) / 577, # Angle de 0 à pi pour un demi-cercle de gauche à droite
+    x = cos(angle), # Coordonnée X
+    y = sin(angle) # Coordonnée Y
   )
 
 # Création du graphique avec 577 points représentant les sièges
 ggplot(seats_data) +
   geom_point(
-    aes(x = x, y = y, color = Couleur), 
-    size = 3,  # Taille des points ajustée
+    aes(x = x, y = y, color = Couleur),
+    size = 3, # Taille des points ajustée
     shape = 16
   ) +
-  scale_color_identity() +  # Utiliser les couleurs exactes de chaque parti
-  coord_fixed() +  # Fixer les proportions pour éviter la distorsion
-  theme_void() +  
+  scale_color_identity() + # Utiliser les couleurs exactes de chaque parti
+  coord_fixed() + # Fixer les proportions pour éviter la distorsion
+  theme_void() +
   labs(
-    title = "Répartition des sièges à l’Assemblée nationale", 
+    title = "Répartition des sièges à l’Assemblée nationale",
     caption = "Source : Le Monde (2024)"
   ) +
   theme(
@@ -216,11 +222,15 @@ ggplot(seats_data) +
     plot.caption = element_text(hjust = 0.5)
   )
 
+
+
+
+
 #---- app principale ------
 
 library(shiny)
 
-ui<-fluidPage(
+ui <- fluidPage(
   fluidRow(
     tabsetPanel(
       tabPanel(
@@ -237,11 +247,13 @@ ui<-fluidPage(
     )
   ),
   fluidRow(
-    column(6,
-           "truc"
+    column(
+      6,
+      "truc"
     ),
-    column(6,
-           "machin"
+    column(
+      6,
+      "machin"
     )
   )
 )
@@ -254,10 +266,10 @@ server <- function(input, output, session) {
     bins <- seq(min(x), max(x), length.out = input$bins + 1)
     # draw the histogram with the specified number of bins
     hist(x,
-         breaks = bins, col = "lightblue", border = "white",
-         xlab = "Temps d'attente avant le prochain jet (en minutes)",
-         ylab = "Fréquence",
-         main = "Histogramme du temps d'attente"
+      breaks = bins, col = "lightblue", border = "white",
+      xlab = "Temps d'attente avant le prochain jet (en minutes)",
+      ylab = "Fréquence",
+      main = "Histogramme du temps d'attente"
     )
   })
 }
@@ -268,7 +280,3 @@ shinyApp(ui = ui, server = server)
 
 
 # ----------------
-
-
-
-
