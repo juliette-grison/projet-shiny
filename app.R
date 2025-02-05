@@ -58,27 +58,27 @@ legislatives <- legislatives |>
 
 # Onglet 2 : Florian
 
+library(htmltools)
 
 # Créer un texte de popup formaté avec les noms et prénoms des 19 candidats
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
-  # Initialiser avec le libelle (nom de la circonscription)
-  popup_text <- row["libelle"]
+  # Début du tableau HTML
+  popup_text <- sprintf("<strong>%s</strong><br><table border='1' style='border-collapse: collapse;'>", row["libelle"])
   
-  # Stocker les candidats dans un vecteur
-  candidats <- c()
-  
+  # Ajouter les candidats au tableau
   for (i in 1:19) {
     nom_col <- paste("Nom candidat", i)
     prenom_col <- paste("Prénom candidat", i)
     
-    # Ajouter le nom et prénom si les colonnes existent et ne sont pas NA
     if (!is.na(row[[nom_col]]) && !is.na(row[[prenom_col]])) {
-      candidats <- c(candidats, sprintf("%s %s", row[[nom_col]], row[[prenom_col]]))
+      popup_text <- paste0(popup_text, sprintf("<tr><td>%s</td><td>%s</td></tr>", row[[prenom_col]], row[[nom_col]]))
     }
   }
   
-  # Coller les candidats avec des sauts de ligne
-  paste(c(popup_text, candidats), collapse = "\n")
+  # Fin du tableau
+  popup_text <- paste0(popup_text, "</table>")
+  
+  return(HTML(popup_text)) # Convertir en HTML
 })
 
 
@@ -89,6 +89,8 @@ leaflet(legislatives$geometry) |>
   addPolygons(
     popup = legislatives$popup_content  # Utiliser directement les données pour le popup
   )
+
+
 
 
 # Onglet 3 :
