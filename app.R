@@ -60,36 +60,75 @@ legislatives <- legislatives |>
 # Onglet 2 : Florian
 
 library(htmltools)
+library(leaflet)
 
-# Créer un texte de popup formaté avec les noms et prénoms des 19 candidats
+# Définition des couleurs par parti
+couleurs <- c(
+  "EXG" = "#8B0000",  "UG"  = "#FF0000",  "SOC" = "#E60000",  "ECO" = "#008000",
+  "DVG" = "#FF8080",  "ENS" = "#FFD700",  "DVC" = "#DAA520",  "UDI" = "#6495ED",
+  "LR"  = "#0000CD",  "DVD" = "#87CEFA",  "REG" = "#A52A2A",  "DIV" = "#808080",
+  "DSV" = "#C0C0C0",  "UXD" = "#1E90FF",  "HOR" = "#4B0082",  "REC" = "#191970",
+  "EXD" = "#00008B",  "RN"  = "#000080"
+)
+
+# Vecteur d'ordre des partis (de l'extrême gauche à l'extrême droite)
+ordre_partis <- c("EXG", "UG", "SOC", "ECO", "DVG", "ENS", "DVC", "UDI", "LR", "DVD", 
+                  "REG", "DIV", "DSV", "UXD", "HOR", "REC", "EXD", "RN")
+
+# Génération du contenu des popups
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
-  # Début du tableau HTML
-  popup_text <- sprintf("<strong>%s</strong><br><table border='1' style='border-collapse: collapse;'>", row["libelle"])
-
-  # Ajouter les candidats au tableau
-  for (i in 1:19) {
-    nom_col <- paste("Nom candidat", i)
-    prenom_col <- paste("Prénom candidat", i)
-
-    if (!is.na(row[[nom_col]]) && !is.na(row[[prenom_col]])) {
-      popup_text <- paste0(popup_text, sprintf("<tr><td>%s</td><td>%s</td></tr>", row[[prenom_col]], row[[nom_col]]))
+  # En-tête du tableau
+  lignes <- sprintf("<strong>%s</strong><br>
+                    <table border='1' style='border-collapse: collapse;'>
+                    <tr><th>Prénom</th><th>Nom</th><th>Parti</th></tr>", row["libelle"])
+  
+  # Création des lignes pour les candidats non vides
+  candidats <- sapply(1:19, function(i) {
+    nom <- row[[paste("Nom candidat", i)]]
+    prenom <- row[[paste("Prénom candidat", i)]]
+    nuance <- row[[paste("Nuance candidat", i)]]
+    
+    # Vérification pour exclure les candidats sans données
+    if (!is.na(nom) && !is.na(prenom) && !is.na(nuance)) {
+      couleur <- if (nuance %in% names(couleurs)) couleurs[[nuance]] else "#FFFFFF"
+      
+      return(list(prenom = prenom, nom = nom, nuance = nuance, couleur = couleur))
+    } else {
+      return(NULL)  # Ignore les candidats sans données
     }
+  }, simplify = FALSE)
+  
+  # Supprime les candidats vides et trie selon l'ordre des partis
+  candidats <- candidats[!sapply(candidats, is.null)]
+  
+  # Si des candidats existent, les trier par nuance
+  if (length(candidats) > 0) {
+    candidats_sorted <- candidats[order(match(sapply(candidats, function(x) x$nuance), ordre_partis))]
+    
+    # Construire les lignes du tableau triées
+    lignes_candidats <- sapply(candidats_sorted, function(candidat) {
+      sprintf("<tr style='background-color: %s; color: white;'>
+                <td>%s</td><td>%s</td><td>%s</td></tr>", 
+              candidat$couleur, candidat$prenom, candidat$nom, candidat$nuance)
+    })
+    
+    # Fusionner les lignes et construire le tableau final
+    popup_text <- paste0(lignes, paste(lignes_candidats, collapse = ""), "</table>")
+  } else {
+    popup_text <- paste0(lignes, "<tr><td colspan='3'>Aucun candidat</td></tr></table>")
   }
-
-  # Fin du tableau
-  popup_text <- paste0(popup_text, "</table>")
-
-  return(HTML(popup_text)) # Convertir en HTML
+  
+  HTML(popup_text)
 })
 
-
-
-# Utiliser leaflet pour afficher les polygones et ajouter des popups avec les noms et prénoms
+# Affichage avec leaflet
 leaflet(legislatives$geometry) |>
   addTiles() |>
   addPolygons(
-    popup = legislatives$popup_content # Utiliser directement les données pour le popup
+    popup = legislatives$popup_content
   )
+
+
 
 
 
