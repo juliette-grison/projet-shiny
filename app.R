@@ -1,149 +1,145 @@
+# ----- PACKAGES -----
+
 library(shiny)
 library(sf)
-library(readxl)
 library(tidyverse)
 library(leaflet)
-
-# Import base de données
-leg <- read_excel("data/legislatives_2024.xlsx", col_names = TRUE)
-
-# Import carte
-leg_carte <- st_read("data/contours_circo.shp")
-
-# suppression des 0 à gauche
-leg_carte <- leg_carte |>
-  mutate(id_circo = str_remove(id_circo, "^0+"))
-
-# jointure dataframes
-legislatives <- left_join(leg, leg_carte, by = c("Code circonscription législative" = "id_circo"))
-
-# colonnes à sélectionner
-colonnes <- c(
-  "Code département", "Libellé département",
-  "Code circonscription législative",
-  "Libellé circonscription législative", "libelle",
-  "Nom candidat 1", "Prénom candidat 1", "Nuance candidat 1", "Elu 1",
-  "Nom candidat 2", "Prénom candidat 2", "Nuance candidat 2", "Elu 2",
-  "Nom candidat 3", "Prénom candidat 3", "Nuance candidat 3", "Elu 3",
-  "Nom candidat 4", "Prénom candidat 4", "Nuance candidat 4", "Elu 4",
-  "Nom candidat 5", "Prénom candidat 5", "Nuance candidat 5", "Elu 5",
-  "Nom candidat 6", "Prénom candidat 6", "Nuance candidat 6", "Elu 6",
-  "Nom candidat 7", "Prénom candidat 7", "Nuance candidat 7", "Elu 7",
-  "Nom candidat 8", "Prénom candidat 8", "Nuance candidat 8", "Elu 8",
-  "Nom candidat 9", "Prénom candidat 9", "Nuance candidat 9", "Elu 9",
-  "Nom candidat 10", "Prénom candidat 10", "Nuance candidat 10", "Elu 10",
-  "Nom candidat 11", "Prénom candidat 11", "Nuance candidat 11", "Elu 11",
-  "Nom candidat 12", "Prénom candidat 12", "Nuance candidat 12", "Elu 12",
-  "Nom candidat 13", "Prénom candidat 13", "Nuance candidat 13", "Elu 13",
-  "Nom candidat 14", "Prénom candidat 14", "Nuance candidat 14", "Elu 14",
-  "Nom candidat 15", "Prénom candidat 15", "Nuance candidat 15", "Elu 15",
-  "Nom candidat 16", "Prénom candidat 16", "Nuance candidat 16", "Elu 16",
-  "Nom candidat 17", "Prénom candidat 17", "Nuance candidat 17", "Elu 17",
-  "Nom candidat 18", "Prénom candidat 18", "Nuance candidat 18", "Elu 18",
-  "Nom candidat 19", "Prénom candidat 19", "Nuance candidat 19", "Elu 19",
-  "geometry"
-)
-
-legislatives <- legislatives |>
-  select(all_of(colonnes))
-
-
-
-
-# Onglet 1 :
-
-
-
-
-
-
-# Onglet 2 : Florian
-
 library(htmltools)
-library(leaflet)
 
-# Définition des couleurs par parti
+
+
+
+
+# ----- IMPORTS -----
+
+villes <- read_rds("data/villes.rds")
+legislatives <- read_rds("data/legislatives.rds")
+
+
+
+
+
+# ----- ONGLET 1 : INFORMATIONS GENERALES -----
+
+
+
+
+
+
+
+
+
+
+# ----- ONGLET 2 : CARTE DES CIRCONSCRIPTIONS - Florian -----
+
+# Couleurs par parti
 couleurs <- c(
-  "EXG" = "#8B0000",  "UG"  = "#FF0000",  "SOC" = "#E60000",  "ECO" = "#008000",
-  "DVG" = "#FF8080",  "ENS" = "#FFD700",  "DVC" = "#DAA520",  "UDI" = "#6495ED",
-  "LR"  = "#0000CD",  "DVD" = "#87CEFA",  "REG" = "#A52A2A",  "DIV" = "#808080",
-  "DSV" = "#C0C0C0",  "UXD" = "#1E90FF",  "HOR" = "#4B0082",  "REC" = "#191970",
-  "EXD" = "#00008B",  "RN"  = "#000080"
+  "Extrême Gauche"          = "#A50026",  # Rouge très foncé
+  "Union de la Gauche"      = "#D73027",  # Rouge vif
+  "Parti Socialiste"        = "#F46D43",  # Rouge orangé
+  "Écologistes"             = "#1A9850",  # Vert soutenu
+  "Divers Gauche"           = "#FDAE61",  # Orange clair
+  "Ensemble"                = "#FFD700",  # Jaune doré
+  "Divers Centre"           = "#FEC44F",  # Jaune orangé
+  "Union des Démocrates et Indépendants" = "#92C5DE",  # Bleu ciel
+  "Les Républicains"        = "#4575B4",  # Bleu moyen
+  "Divers Droite"           = "#74ADD1",  # Bleu clair
+  "Régionalistes"           = "#7F3B08",  # Brun foncé
+  "Divers"                  = "#BEBEBE",  # Gris moyen
+  "Divers Souverainistes"   = "#D9D9D9",  # Gris clair
+  "Union de la Droite"      = "#313695",  # Bleu foncé
+  "Horizons"                = "#542788",  # Violet
+  "Reconquête"              = "#2D004B",  # Violet très foncé
+  "Extrême Droite"          = "#081D58",  # Bleu nuit profond
+  "Rassemblement National"  = "#041E42"   # Bleu marine presque noir
 )
 
-# Vecteur d'ordre des partis (de l'extrême gauche à l'extrême droite)
-ordre_partis <- c("EXG", "UG", "SOC", "ECO", "DVG", "ENS", "DVC", "UDI", "LR", "DVD", 
-                  "REG", "DIV", "DSV", "UXD", "HOR", "REC", "EXD", "RN")
+# Ordre des partis de l'extrême gauche à l'extrême droite
+ordre_partis <- c(
+  "Extrême Gauche", "Union de la Gauche", "Parti Socialiste", "Écologistes",
+  "Divers Gauche", "Ensemble", "Divers Centre", "Union des Démocrates et Indépendants",
+  "Les Républicains", "Divers Droite", "Régionalistes", "Divers",
+  "Divers Souverainistes", "Union de la Droite", "Horizons", "Reconquête",
+  "Extrême Droite", "Rassemblement National"
+)
 
 # Génération du contenu des popups
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
   # En-tête du tableau
   lignes <- sprintf("<strong>%s</strong><br>
-                    <table border='1' style='border-collapse: collapse;'>
-                    <tr><th>Prénom</th><th>Nom</th><th>Parti</th></tr>", row["libelle"])
+                    <table style='border-collapse: collapse; width: 100%%;'>
+                    <tr style='background-color: #333; color: white;'>
+                      <th>Prénom</th><th>Nom</th><th>Parti</th>
+                    </tr>", row["Libellé"])
   
-  # Création des lignes pour les candidats non vides
-  candidats <- sapply(1:19, function(i) {
+  # Filtrage des candidats valides
+  candidats <- lapply(1:19, function(i) {
     nom <- row[[paste("Nom candidat", i)]]
     prenom <- row[[paste("Prénom candidat", i)]]
     nuance <- row[[paste("Nuance candidat", i)]]
     
-    # Vérification pour exclure les candidats sans données
-    if (!is.na(nom) && !is.na(prenom) && !is.na(nuance)) {
+    if (!is.na(nom) && !is.na(prenom) && !is.na(nuance) && nom != "" && prenom != "" && nuance != "") {
       couleur <- if (nuance %in% names(couleurs)) couleurs[[nuance]] else "#FFFFFF"
-      
       return(list(prenom = prenom, nom = nom, nuance = nuance, couleur = couleur))
     } else {
-      return(NULL)  # Ignore les candidats sans données
+      return(NULL)  # Ignore les candidats incomplets
     }
-  }, simplify = FALSE)
+  })
   
-  # Supprime les candidats vides et trie selon l'ordre des partis
-  candidats <- candidats[!sapply(candidats, is.null)]
+  # Suppression des NULL (candidats invalides)
+  candidats <- Filter(Negate(is.null), candidats)
   
-  # Si des candidats existent, les trier par nuance
+  # Tri des candidats selon l'ordre des partis
   if (length(candidats) > 0) {
     candidats_sorted <- candidats[order(match(sapply(candidats, function(x) x$nuance), ordre_partis))]
     
-    # Construire les lignes du tableau triées
+    # Génération des lignes du tableau avec couleurs
     lignes_candidats <- sapply(candidats_sorted, function(candidat) {
       sprintf("<tr style='background-color: %s; color: white;'>
                 <td>%s</td><td>%s</td><td>%s</td></tr>", 
               candidat$couleur, candidat$prenom, candidat$nom, candidat$nuance)
     })
     
-    # Fusionner les lignes et construire le tableau final
+    # Fusionner les lignes des candidats dans le tableau
     popup_text <- paste0(lignes, paste(lignes_candidats, collapse = ""), "</table>")
   } else {
-    popup_text <- paste0(lignes, "<tr><td colspan='3'>Aucun candidat</td></tr></table>")
+    popup_text <- paste0(lignes, "<tr><td colspan='3' style='text-align:center;'>Aucun candidat</td></tr></table>")
   }
   
   HTML(popup_text)
 })
 
-# Affichage avec leaflet
-leaflet(legislatives$geometry) |>
+# Conversion des données géospatiales en format sf compatible avec leaflet
+legislatives_sf <- st_as_sf(legislatives)
+
+# Création de la carte avec leaflet
+leaflet(legislatives_sf) |>
   addTiles() |>
   addPolygons(
-    popup = legislatives$popup_content
+    popup = legislatives_sf$popup_content,
+    label = ~Libellé,  # Affiche le nom de la circonscription au survol
+    labelOptions = labelOptions(
+      direction = "auto",  # La direction du label
+      style = list(
+        "font-weight" = "bold",
+        "color" = "black",
+        "background" = "white",
+        "padding" = "5px"
+      )
+    ),
+    highlight = highlightOptions(
+      weight = 5,
+      color = "#666",  # Color of the border when highlighted
+      fillOpacity = 0.7,  # Opacity of the fill on hover
+      bringToFront = TRUE  # Bring the polygon to front when hovered
+    )
   )
 
 
 
 
 
-
-
-
-# Onglet 3 :
-
-
-
-
-
-
-
-# Onglet 4 :
+# ----- ONGLET 3 : PARTIS POLITIQUES -----
 
 
 
@@ -152,19 +148,33 @@ leaflet(legislatives$geometry) |>
 
 
 
-# Onglet 5 : Juliette
+
+
+# ----- ONGLET 4 : COMMENT VOTER ? -----
+
+
+
+
+
+
+
+
+
+
+# ----- ONGLET 5 : RESULTATS - Juliette -----
+
 library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggforce)
 
-## Différents partis politiques
+# Extraction des partis uniques
 partis_uniques <- unique(unlist(legislatives[, grep("^Nuance candidat", names(legislatives))]))
 print(partis_uniques)
 
 # Nom, prénom et nuance de chaque élu dans chaque circonscription
-library(dplyr)
-library(tidyr)
-
 legislatives_resultats <- legislatives |>
-  select(-geometry) |>
+  select(-Géométrie) |>
   pivot_longer(cols = starts_with("Elu"), names_to = "Candidat", values_to = "Elu") |>
   pivot_longer(cols = starts_with("Nuance candidat"), names_to = "Nuance", values_to = "Parti") |>
   pivot_longer(cols = starts_with("Nom candidat"), names_to = "Nom_col", values_to = "Nom") |>
@@ -175,23 +185,17 @@ legislatives_resultats <- legislatives |>
     substr(Candidat, 5, 100) == substr(Prenom_col, 8, 100)
   ) |>
   filter(Elu == "2lu") |>
-  select(Circonscription, Prenom, Nom, Parti) |>
+  select(`Libellé circonscription législative`, Prenom, Nom, Parti) |>
   distinct()
 
 print(legislatives_resultats)
 
-### Graphique demi-circulaire des résultats
-library(tidyverse)
-library(ggplot2)
-library(ggforce)
-
-# Exemple de données
+# Exemple de données pour le graphique
 resultats_assemblee <- data.frame(
   Parti = c("Nouveau Front Populaire", "Gauche", "Ensemble", "Centre", "Régionalistes", "Les Républicains", "Droite", "Rassemblement National", "Divers"),
-  Sieges = c(182, 13, 168, 6, 4, 46, 14, 143, 1), # Remplace par les valeurs réelles
+  Sieges = c(182, 13, 168, 6, 4, 46, 14, 143, 1), # Remplacez par les valeurs réelles
   Couleur = c("firebrick4", "firebrick1", "gold", "gold3", "lightgoldenrod4", "dodgerblue", "dodgerblue3", "navy", "gray47") # Couleurs pour chaque parti
 )
-
 
 # Calcul des positions pour le demi-cercle
 resultats_assemblee <- resultats_assemblee |>
@@ -200,7 +204,7 @@ resultats_assemblee <- resultats_assemblee |>
     end = pi * cumsum(Sieges) / sum(Sieges) - pi / 2 # Rotation -90°
   )
 
-# Créer le graphique demi-circulaire
+# Création du graphique demi-circulaire
 ggplot(resultats_assemblee) +
   geom_arc_bar(
     aes(
@@ -223,7 +227,7 @@ ggplot(resultats_assemblee) +
     plot.caption = element_text(hjust = 0.5) # Centrer la sous-légende
   )
 
-### Essai avec des points
+# Essai avec des points
 # Création d'un vecteur représentant tous les sièges (577 sièges)
 seats <- rep(resultats_assemblee$Parti, resultats_assemblee$Sieges)
 
@@ -265,7 +269,7 @@ ggplot(seats_data) +
 
 
 
-#---- app principale ------
+#----- APP PRINCIPALE -----
 
 library(shiny)
 
@@ -273,49 +277,60 @@ ui <- fluidPage(
   fluidRow(
     tabsetPanel(
       tabPanel(
-        "Onglet un"
-      ),
-      tabPanel("Onglet deux"),
-      tabPanel("Onglet trois"),
-      tabPanel(
-        "onglet quatre"
+        "Informations générales"
       ),
       tabPanel(
-        "onglet cinq"
+        "Carte des circonscriptions",
+        # Barre de recherche pour la ville
+        textInput("search_input", label = "Rechercher une ville", value = ""),
+        leafletOutput("ma_carte")
+      ),
+      tabPanel(
+        "Partis politiques"
+      ),
+      tabPanel(
+        "Comment voter ?"
+      ),
+      tabPanel(
+        "Résultats"
       )
-    )
-  ),
-  fluidRow(
-    column(
-      6,
-      "truc"
-    ),
-    column(
-      6,
-      "machin"
     )
   )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  output$distPlot <- renderPlot({
-    # generate bins based on input$bins from ui.R
-    x <- faithful[, 2]
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    # draw the histogram with the specified number of bins
-    hist(x,
-      breaks = bins, col = "lightblue", border = "white",
-      xlab = "Temps d'attente avant le prochain jet (en minutes)",
-      ylab = "Fréquence",
-      main = "Histogramme du temps d'attente"
+  # création de la carte avec leaflet
+  carte <- leaflet(legislatives_sf) |>
+    addTiles() |>
+    addPolygons(
+      popup = legislatives_sf$popup_content,
+      label = ~Libellé,  # Affiche le nom de la circonscription au survol
+      labelOptions = labelOptions(
+        direction = "auto",  # La direction du label
+        style = list(
+          "font-weight" = "bold",
+          "color" = "black",
+          "background" = "white",
+          "padding" = "5px"
+        )
+      ),
+      highlight = highlightOptions(
+        weight = 5,
+        color = "#666",  # Color of the border when highlighted
+        fillOpacity = 0.7,  # Opacity of the fill on hover
+        bringToFront = TRUE  # Bring the polygon to front when hovered
+      )
     )
-  })
+  
+  # création de l'objet carte
+  output$ma_carte <- renderLeaflet(carte)
 }
 
 # Run the application
 shinyApp(ui = ui, server = server)
 
-
-
 # ----------------
+
+
+
