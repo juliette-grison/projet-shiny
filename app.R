@@ -12,8 +12,14 @@ library(htmltools)
 
 # ----- IMPORTS -----
 
-villes <- read_rds("data/villes.rds")
+## Circonscriptions et candidats et résultats
 legislatives <- read_rds("data/legislatives.rds")
+
+## Circonscriptions non affichées sur la carte
+legislatives_empty <- read_rds("data/legislatives_empty.rds")
+
+## Villes et coordonnées géographiques
+villes <- read_rds("data/villes.rds")
 
 
 
@@ -272,65 +278,103 @@ ggplot(seats_data) +
 #----- APP PRINCIPALE -----
 
 library(shiny)
+library(leaflet)
+library(dplyr)
+library(stringi)
 
 ui <- fluidPage(
+  # Ajout du CSS pour éviter les chevauchements
+  tags$style(HTML("
+    #search_btn {
+      margin-top: 10px;
+      z-index: 100;
+    }
+    .leaflet-container {
+      z-index: 1;
+    }
+    .selectize-input {
+      z-index: 1000;
+    }
+    .selectize-dropdown {
+      z-index: 1000;
+    }
+  ")),
+  
   fluidRow(
     tabsetPanel(
-      tabPanel(
-        "Informations générales"
-      ),
+      tabPanel("Informations générales"),
       tabPanel(
         "Carte des circonscriptions",
-        # Barre de recherche pour la ville
-        textInput("search_input", label = "Rechercher une ville", value = ""),
-        leafletOutput("ma_carte")
+        
+        # Sélecteur avec suggestions dynamiques
+        selectizeInput("search_input", "Rechercher une ville", choices = NULL, multiple = FALSE, 
+                       options = list(placeholder = "Tapez un nom de ville...")),
+        
+        actionButton("search_btn", "Chercher"),
+        leafletOutput("ma_carte", height = "600px")  # Augmente la hauteur pour éviter l'affichage caché
       ),
-      tabPanel(
-        "Partis politiques"
-      ),
-      tabPanel(
-        "Comment voter ?"
-      ),
-      tabPanel(
-        "Résultats"
-      )
+      tabPanel("Partis politiques"),
+      tabPanel("Comment voter ?"),
+      tabPanel("Résultats")
     )
   )
 )
 
-# Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  # création de la carte avec leaflet
-  carte <- leaflet(legislatives_sf) |>
-    addTiles() |>
-    addPolygons(
-      popup = legislatives_sf$popup_content,
-      label = ~Libellé,  # Affiche le nom de la circonscription au survol
-      labelOptions = labelOptions(
-        direction = "auto",  # La direction du label
-        style = list(
-          "font-weight" = "bold",
-          "color" = "black",
-          "background" = "white",
-          "padding" = "5px"
-        )
-      ),
-      highlight = highlightOptions(
-        weight = 5,
-        color = "#666",  # Color of the border when highlighted
-        fillOpacity = 0.7,  # Opacity of the fill on hover
-        bringToFront = TRUE  # Bring the polygon to front when hovered
-      )
-    )
   
-  # création de l'objet carte
-  output$ma_carte <- renderLeaflet(carte)
+  # Mise à jour dynamique des suggestions en fonction de l'entrée utilisateur
+  observe({
+    updateSelectizeInput(session, "search_input", choices = villes$`Libellé commune`, server = TRUE)
+  })
+  
+  # Création initiale de la carte avec les circonscriptions
+  output$ma_carte <- renderLeaflet({
+    leaflet(legislatives_sf) |>
+      addTiles() |>
+      addPolygons(
+        popup = ~popup_content,
+        label = ~Libellé,  # Affiche le nom de la circonscription au survol
+        labelOptions = labelOptions(
+          direction = "auto",  
+          style = list(
+            "font-weight" = "bold",
+            "color" = "black",
+            "background" = "white",
+            "padding" = "5px"
+          )
+        ),
+        highlight = highlightOptions(
+          weight = 5,
+          color = "#666",  
+          fillOpacity = 0.7,  
+          bringToFront = TRUE  
+        )
+      ) |>
+      addControl(html = "", position = "bottomright")  
+  })
+  
+  # Observer le bouton de recherche
+  observeEvent(input$search_btn, {
+    req(input$search_input)  # Éviter les entrées vides
+    
+    recherche <- tolower(stri_trans_general(input$search_input, "Latin-ASCII"))  # Supprime les accents
+    villes_mod <- villes |> 
+      mutate(label_clean = tolower(stri_trans_general(`Libellé commune`, "Latin-ASCII")))  
+    
+    # Recherche exacte
+    ville_trouvee <- villes_mod |> filter(label_clean == recherche)
+    
+    # Zoom sur la ville trouvée
+    if (nrow(ville_trouvee) > 0) {
+      leafletProxy("ma_carte") |>
+        setView(lng = ville_trouvee$Longitude[1], lat = ville_trouvee$Latitude[1], zoom = 12)
+    } else {
+      showNotification("Ville non trouvée.", type = "error")
+    }
+  })
 }
 
-# Run the application
+# Lancer l'application
 shinyApp(ui = ui, server = server)
-
-# ----------------
-
 
 
