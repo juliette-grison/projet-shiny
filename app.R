@@ -6,6 +6,7 @@ library(tidyverse)
 library(leaflet)
 library(htmltools)
 library(stringi)
+library(DT)
 
 
 
@@ -42,6 +43,7 @@ villes <- read_rds("data/villes.rds")
 # Couleurs par parti
 couleurs <- c(
   "Extrême Gauche"          = "#A50026",  # Rouge très foncé
+  "France Insoumise"        = "#D1191B",  # Rouge foncé
   "Union de la Gauche"      = "#D73027",  # Rouge vif
   "Parti Socialiste"        = "#F46D43",  # Rouge orangé
   "Écologistes"             = "#1A9850",  # Vert soutenu
@@ -63,12 +65,13 @@ couleurs <- c(
 
 # Ordre des partis de l'extrême gauche à l'extrême droite
 ordre_partis <- c(
-  "Extrême Gauche", "Union de la Gauche", "Parti Socialiste", "Écologistes",
+  "Extrême Gauche", "France Insoumise", "Union de la Gauche", "Parti Socialiste", "Écologistes",
   "Divers Gauche", "Ensemble", "Divers Centre", "Union des Démocrates et Indépendants",
   "Les Républicains", "Divers Droite", "Régionalistes", "Divers",
   "Divers Souverainistes", "Union de la Droite", "Horizons", "Reconquête",
   "Extrême Droite", "Rassemblement National"
 )
+
 
 # Génération du contenu des popups
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
@@ -86,7 +89,7 @@ legislatives$popup_content <- apply(legislatives, 1, function(row) {
     nuance <- row[[paste("Nuance candidat", i)]]
     
     if (!is.na(nom) && !is.na(prenom) && !is.na(nuance) && nom != "" && prenom != "" && nuance != "") {
-      couleur <- if (nuance %in% names(couleurs)) couleurs[[nuance]] else "#FFFFFF"
+      couleur <- if (nuance %in% names(couleurs)) couleurs[[nuance]] else "#FFFFFF"  # Assurer une couleur de fond même sans correspondance
       return(list(prenom = prenom, nom = nom, nuance = nuance, couleur = couleur))
     } else {
       return(NULL)  # Ignore les candidats incomplets
@@ -116,6 +119,7 @@ legislatives$popup_content <- apply(legislatives, 1, function(row) {
   HTML(popup_text)
 })
 
+
 # Conversion des données géospatiales en format sf compatible avec leaflet
 legislatives_sf <- st_as_sf(legislatives)
 
@@ -142,6 +146,38 @@ leaflet(legislatives_sf) |>
     )
   )
 
+## Autres circonscriptions
+
+legislatives_empty <- legislatives_empty %>%
+  rowwise() %>%
+  mutate(
+    candidats_info = list(
+      tibble(
+        Prénom = c(`Prénom candidat 1`, `Prénom candidat 2`, `Prénom candidat 3`, 
+                   `Prénom candidat 4`, `Prénom candidat 5`, `Prénom candidat 6`, 
+                   `Prénom candidat 7`, `Prénom candidat 8`, `Prénom candidat 9`, 
+                   `Prénom candidat 10`, `Prénom candidat 11`, `Prénom candidat 12`, 
+                   `Prénom candidat 13`, `Prénom candidat 14`, `Prénom candidat 15`, 
+                   `Prénom candidat 16`, `Prénom candidat 17`, `Prénom candidat 18`, 
+                   `Prénom candidat 19`),
+        Nom = c(`Nom candidat 1`, `Nom candidat 2`, `Nom candidat 3`, 
+                `Nom candidat 4`, `Nom candidat 5`, `Nom candidat 6`, 
+                `Nom candidat 7`, `Nom candidat 8`, `Nom candidat 9`, 
+                `Nom candidat 10`, `Nom candidat 11`, `Nom candidat 12`, 
+                `Nom candidat 13`, `Nom candidat 14`, `Nom candidat 15`, 
+                `Nom candidat 16`, `Nom candidat 17`, `Nom candidat 18`, 
+                `Nom candidat 19`),
+        Parti = c(`Nuance candidat 1`, `Nuance candidat 2`, `Nuance candidat 3`, 
+                  `Nuance candidat 4`, `Nuance candidat 5`, `Nuance candidat 6`, 
+                  `Nuance candidat 7`, `Nuance candidat 8`, `Nuance candidat 9`, 
+                  `Nuance candidat 10`, `Nuance candidat 11`, `Nuance candidat 12`, 
+                  `Nuance candidat 13`, `Nuance candidat 14`, `Nuance candidat 15`, 
+                  `Nuance candidat 16`, `Nuance candidat 17`, `Nuance candidat 18`, 
+                  `Nuance candidat 19`)
+      )
+    )
+  ) %>%
+  ungroup()
 
 
 
@@ -278,83 +314,133 @@ ggplot(seats_data) +
 
 #----- APP PRINCIPALE -----
 
-ui <- fluidPage(
+library(shiny)
+library(shinythemes)
+library(leaflet)
+library(DT)
+library(stringi)
+library(dplyr)
+library(tidyr)
 
+ui <- fluidPage(
+  theme = shinytheme("readable"),
   fluidRow(
     tabsetPanel(
       tabPanel("Informations générales"),
-      tabPanel(
-        "Carte des circonscriptions",
-        
-        # Sélecteur avec suggestions dynamiques
-        selectizeInput("search_input", "Rechercher une ville", choices = NULL, multiple = FALSE, 
-                       options = list(placeholder = "Tapez un nom de ville...")),
-        
-        actionButton("search_btn", "Chercher"),
-        leafletOutput("ma_carte", height = "600px")  # Augmente la hauteur pour éviter l'affichage caché
+      tabPanel("Carte des circonscriptions",
+               selectizeInput("search_input", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+               actionButton("search_btn", "Chercher"),
+               leafletOutput("ma_carte", height = "500px"),
+               selectizeInput("search_input2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+               actionButton("show_missing_btn", "Chercher"),
+               h3(textOutput("table_title")),
+               dataTableOutput("circonscriptions_table")
       ),
       tabPanel("Partis politiques"),
       tabPanel("Comment voter ?"),
       tabPanel("Résultats")
     )
+  ),
+  tags$head(
+    tags$style(HTML("
+    .leaflet-control-zoom {
+      position: absolute !important;
+      bottom: 10px;
+      left: 10px;
+    }
+    /* Changer la couleur de la police en blanc pour le tableau */
+    .dataTable, .dataTable th, .dataTable td {
+      color: white !important;
+    }
+  "))
   )
 )
 
+
 server <- function(input, output, session) {
   
-  # Mise à jour dynamique des suggestions en fonction de l'entrée utilisateur
+  # Mise à jour de la liste des villes
   observe({
-    updateSelectizeInput(session, "search_input", choices = villes$`Libellé commune`, server = TRUE)
+    updateSelectizeInput(session, "search_input", choices = villes$`Libellé commune`, selected = "", server = TRUE)
   })
   
-  # Création initiale de la carte avec les circonscriptions
+  # Fonction pour afficher la carte
   output$ma_carte <- renderLeaflet({
-    leaflet(legislatives_sf) |>
-      addTiles() |>
+    leaflet(legislatives_sf) %>%
+      addTiles() %>%
       addPolygons(
         popup = ~popup_content,
-        label = ~Libellé,  # Affiche le nom de la circonscription au survol
-        labelOptions = labelOptions(
-          direction = "auto",  
-          style = list(
-            "font-weight" = "bold",
-            "color" = "black",
-            "background" = "white",
-            "padding" = "5px"
-          )
-        ),
-        highlight = highlightOptions(
-          weight = 5,
-          color = "#666",  
-          fillOpacity = 0.7,  
-          bringToFront = TRUE  
-        )
-      ) |>
-      addControl(html = "", position = "bottomright")  
+        label = ~Libellé,
+        highlight = highlightOptions(weight = 5, color = "#666", fillOpacity = 0.7)
+      )
   })
   
-  # Observer le bouton de recherche
+  # Recherche et zoom sur la ville
   observeEvent(input$search_btn, {
-    req(input$search_input)  # Éviter les entrées vides
+    req(input$search_input)
     
-    recherche <- tolower(stri_trans_general(input$search_input, "Latin-ASCII"))  # Supprime les accents
-    villes_mod <- villes |> 
-      mutate(label_clean = tolower(stri_trans_general(`Libellé commune`, "Latin-ASCII")))  
+    recherche <- tolower(stri_trans_general(input$search_input, "Latin-ASCII"))
+    ville_trouvee <- villes %>%
+      mutate(label_clean = tolower(stri_trans_general(`Libellé commune`, "Latin-ASCII"))) %>%
+      filter(label_clean == recherche)
     
-    # Recherche exacte
-    ville_trouvee <- villes_mod |> filter(label_clean == recherche)
-    
-    # Zoom sur la ville trouvée
     if (nrow(ville_trouvee) > 0) {
-      leafletProxy("ma_carte") |>
+      leafletProxy("ma_carte") %>%
         setView(lng = ville_trouvee$Longitude[1], lat = ville_trouvee$Latitude[1], zoom = 12)
     } else {
       showNotification("Ville non trouvée.", type = "error")
     }
   })
+  
+  # Mise à jour de la liste des villes pour le second champ
+  observe({
+    updateSelectizeInput(session, "search_input2", choices = legislatives_empty$`Libellé commune`, selected = "", server = TRUE)
+  })
+  
+  # Transformation des données pour le tableau
+  transform_legislatives <- function(df) {
+    df_long <- df %>%
+      pivot_longer(cols = starts_with("Prénom candidat"), names_to = "index", values_to = "Prénom") %>%
+      mutate(
+        index_num = as.integer(sub("Prénom candidat ", "", index)),
+        Nom = sapply(index_num, function(i) df[[paste0("Nom candidat ", i)]]),
+        Parti = sapply(index_num, function(i) df[[paste0("Nuance candidat ", i)]])
+      ) %>%
+      select(Prénom, Nom, Parti) %>%
+      filter(!is.na(Prénom) & !is.na(Nom) & !is.na(Parti)) %>%
+      arrange(match(Parti, ordre_partis))  # Tri en fonction de l'ordre des partis
+    
+    return(df_long)
+  }
+  
+  # Affichage du tableau des candidats
+  observeEvent(input$show_missing_btn, {
+    req(input$search_input2)
+    
+    data_filtered <- legislatives_empty %>%
+      filter(`Libellé commune` == input$search_input2)
+    
+    if (nrow(data_filtered) == 0) {
+      showNotification("Aucune donnée trouvée pour cette circonscription.", type = "error")
+      return()
+    }
+    
+    table_data <- transform_legislatives(data_filtered)
+    
+    output$table_title <- renderText({ unique(data_filtered$`Libellé`) })
+    
+    # Ajout de la couleur de fond dans la table sans ajouter une colonne
+    output$circonscriptions_table <- renderDataTable({
+      datatable(table_data, options = list(pageLength = 10), 
+                escape = FALSE,  # Permet d'afficher du HTML
+                rownames = FALSE) %>%
+        formatStyle(
+          columns = c("Prénom", "Nom", "Parti"),
+          target = "row",
+          backgroundColor = styleEqual(names(couleurs), couleurs)  # Applique la couleur de fond selon le parti
+        )
+    })
+  })
 }
 
-# Lancer l'application
 shinyApp(ui = ui, server = server)
-
-
