@@ -5,6 +5,7 @@ library(sf)
 library(tidyverse)
 library(leaflet)
 library(htmltools)
+library(stringi)
 
 
 
@@ -277,29 +278,8 @@ ggplot(seats_data) +
 
 #----- APP PRINCIPALE -----
 
-library(shiny)
-library(leaflet)
-library(dplyr)
-library(stringi)
-
 ui <- fluidPage(
-  # Ajout du CSS pour éviter les chevauchements
-  tags$style(HTML("
-    #search_btn {
-      margin-top: 10px;
-      z-index: 100;
-    }
-    .leaflet-container {
-      z-index: 1;
-    }
-    .selectize-input {
-      z-index: 1000;
-    }
-    .selectize-dropdown {
-      z-index: 1000;
-    }
-  ")),
-  
+
   fluidRow(
     tabsetPanel(
       tabPanel("Informations générales"),
