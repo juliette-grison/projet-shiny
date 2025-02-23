@@ -7,7 +7,7 @@ library(leaflet)
 library(htmltools)
 library(stringi)
 library(DT)
-
+library(shinyjs)
 
 
 
@@ -29,12 +29,87 @@ villes <- read_rds("data/villes.rds")
 
 # ----- ONGLET 1 : INFORMATIONS GENERALES -----
 
+intro_onglet1 <- "
+Les élections législatives approchent à grand pas et vous n’y connaissez rien en politique ou souhaitez approfondir votre savoir élémentaire sur leur fonctionnement ? 
+Ce site est fait pour vous ! Que ce soit la première fois que vous allez voter, ou même si vous êtes un habitué des urnes, ici, on vous explique tout ! 
+Vous trouverez une brève présentation concernant l’utilité des élections législatives et de l’Assemblée Nationale, leur utilité, leur fonctionnement, et leur enjeux à l’échelle du pays. 
+On vous offre également toutes les ressources nécessaires pour voter pour la première fois (ou pas), afin que votre expérience pour ces élections se fasse en toute sérénité : où voter, quoi apporter, comment voter de l’étranger, etc. Bonne navigation sur notre site !
+<br>"
 
+partie1_onglet1 <- "<br>
+<p>Les élections législatives servent à élire les députés. Les députés siègent à l'Assemblée nationale. Ils sont élus au suffrage universel direct par les électeurs français inscrits sur les listes électorales. Le mode de scrutin est un scrutin majoritaire à 2 tours.</p>
+<p>La durée du mandat des députés est de 5 ans (sauf dissolution de l'Assemblée nationale).
+Le 9 juin 2024, le chef de l'Etat a annoncé la dissolution de l'Assemblée nationale.
+Les dernières élections législatives ont eu lieu les 29 et 30 juin 2024 pour le 1er tour, et les 6 et 7 juillet 2024 pour le 2d tour.</p>
+<p>Sauf en cas de dissolution, les élections législatives sont organisées :</p>
+<p> - dans les 70 jours avant la fin du mandat de l'Assemblée nationale précédemment élue </p>
+<p> - et le 7e dimanche qui suit la publication du décret convoquant les électeurs. Mais les élections sont organisées le samedi en Guadeloupe, en Guyane et en Martinique. </p>
+<br>"
 
+partie2_onglet1 <- "<br>
+<p> Le suffrage universel est un principe fondamental de la République. À l’origine, lors de la Révolution française (1789 et 1792), le vote se faisait en plusieurs étapes, mais c’est finalement la IIe République qui, en 1848, instaure le suffrage universel masculin pour tous les hommes âgés d’au moins 21 ans. La IIIe République le rend définitif. </p>
+<p> Cependant, tout au long du XIXe siècle, le droit de vote connaît des restrictions, souvent liées à des critères comme le niveau d’impôt payé (en 1814, 1830, 1849, 1852). En 1879, une large victoire des républicains marque un tournant en ancrant durablement le suffrage universel dans le régime politique.</p>
+<p> Mais ce système reste longtemps imparfait : les femmes, par exemple, n’obtiennent le droit de vote qu’en 1944 (et peuvent voter aux municipales dès 1945). De plus, le mode de scrutin fait l’objet de nombreux débats : faut-il un ou deux tours ? Un vote par liste ou individuel ? Une élection à la majorité absolue ou à la proportionnelle ? Différents systèmes sont testés au fil du temps, souvent sous l’influence des partis politiques et de leurs stratégies électorales.</p>
+<p>Les grands partis, mieux organisés, prennent l’avantage sur les petites formations politiques. La démocratie, en imposant des compromis et des alliances entre partis (comme les coalitions, unions ou cartels), modifie la manière dont les élections sont jouées et gagnées.</p>
+<p>La Constitution mise en place par le général de Gaulle avait pour but de donner plus de pouvoir au président et au gouvernement, tout en réduisant l’influence du Parlement. Cependant, depuis le début de la Ve République, le président, élu directement par les citoyens, a parfois partagé son pouvoir avec le Premier ministre, notamment en période de cohabitation (lorsque le président et la majorité parlementaire sont de bords politiques opposés).</p>
+<p> Un élément clé du système politique français est le fait qu'une majorité claire à l'Assemblée nationale renforce la stabilité du gouvernement. En 1958, Michel Debré, un des principaux architectes de la Constitution, espérait justement qu'une majorité solide puisse émerger après chaque élection.</p>
+<p>Ironiquement, alors que la Ve République voulait initialement limiter l’influence des partis politiques, elle a finalement renforcé leur rôle au fil des années. Aujourd’hui, même si le président a seul le pouvoir de nommer le Premier ministre, ce choix dépend toujours du parti ou de la coalition majoritaire à l’Assemblée nationale. Ce fonctionnement ressemble à celui des régimes parlementaires, où le chef du gouvernement est issu du parti vainqueur des élections.</p>
+<br>"
 
+partie3_onglet1 <- "<br>
+<p>Les députés sont élus au suffrage universel direct, au scrutin majoritaire à 2 tours et par circonscriptions.</p>
+<ul style=\"list-style-type:square;\">
+  <li><p>1er tour :</p>
+<p>Pour être élu au 1er tour, un candidat doit obtenir :</p>
+<p>- Plus de 50 % des suffrages exprimés</p>
+<p>- Et un nombre de voix au moins égal à 25 % du nombre des électeurs inscrits.</p>
+<p>Si aucun candidat n'est élu dès le 1er tour, un 2d tour est organisé une semaine plus tard.
+</p></li>
+<br>
+  <li><p>2d tour :</p>
+<p>Seuls certains candidats peuvent se présenter au 2d tour :</p>
+<p>- Les 2 candidats qui sont arrivés en tête</p>
+<p>- Les candidats suivants, à condition d'avoir obtenu un nombre de voix au moins égal à 12,5 % du nombre des électeurs inscrits.</p>
+<p>Au 2d tour, le candidat qui obtient le plus grand nombre de voix est élu. En cas d'égalité, le plus âgé des candidats est élu.</li>
+</ul>
+<br>
 
+<ul><li><p><B>Qui peut voter ?</B></p>
+</p>Le scrutin législatif est ouvert à tous les électeurs des scrutins nationaux inscrits sur les listes électorales, c’est-à-dire à toute personne :</p>
+<p>- âgée de 18 ans au moins à la date du premier tour</p>
+<p>- n'étant pas déchue de ses droits civiques</p>
+<p>- de nationalité française</p>
+<p>- jouissant de ses droits civils et politiques</p>
+<p>- inscrite sur une liste électorale.</p></li>
+<br>
+<p><B><li>Comment sont réparties les circonscriptions ?</B></p>
+<p>Depuis 2012, la France est découpée en 577 circonscriptions législatives, chacune élisant un député à l'Assemblée nationale. Les circonscriptions sont principalement formées de cantons, qui regroupent plusieurs communes ou, parfois, des parties d’une grande commune. 
+Cependant, certaines circonscriptions ne respectent pas le seuil moyen de 120 000 habitants par député, notamment dans les territoires d'outre-mer et certaines collectivités spécifiques comme les Terres australes et antarctiques françaises (TAAF), en raison de leur faible population.
+Il y a en tout 577 circonscriptions réparties de la sorte :</p>
+<p>- <B>France métropolitaine </B> : 539</p>
+<p>- <B>Départements d’outre-mer (DOM) </B> : 19</p>
+<p>- <B>Collectivités d’outre-mer (COM) </B> : 8</p>
+<p>- <B>Français établis hors de France </B> : 11</p>
+<p>Pour des raisons logistiques, les élections se déroulent en plusieurs étapes : d'abord pour les Français de l'étranger, puis pour les territoires d’outre-mer, et enfin en métropole.</p></li></ul>
+<br>"
 
+partie4_onglet1 <- "<br>
+<p>Le pouvoir législatif exercé par l’Assemblée nationale joue un rôle essentiel dans l’équilibre politique du pays. Tantôt un soutien direct au gouvernement élu lors des élections présidentielles, tantôt un contre-pouvoir, il requiert plus que jamais une participation citoyenne active. 
+Bien que l’Assemblée serve généralement à constituer une majorité pour le président ou la présidente fraîchement élu(e), elle peut également entraîner des périodes de cohabitation et permettre aux partis d’opposition d’exercer une influence sur la représentation politique durant les cinq années du mandat.</p>
+<br>
+<ol>
+<li><p><B>Un rôle législatif fondamental</B></p>
+Votre député(e) a pour mission de proposer, encadrer et examiner les lois. Il ou elle vous représente en votant pour ou contre les textes soumis à l’Assemblée Nationale.</p></li>
 
+<li><p><B>Un relais de la voix citoyenne</B></p>
+Élu(e) national, votre député(e) est un porte-parole qui peut interpeller directement les membres du gouvernement sur des sujets qui préoccupent les citoyens. Son rôle est de défendre les intérêts de l’ensemble de la population.</p></li>
+
+<li><p><B>Un moyen d’exprimer une opposition au gouvernement</B></p>
+Si le gouvernement propose des mesures controversées, l’Assemblée nationale peut, avec le soutien de plusieurs députés, voter une motion de censure pour s’y opposer et ainsi bloquer certaines décisions.</p></li>
+
+<li><p><B>Un représentant au service des citoyens</B></p>
+La fonction principale d’un député est de représenter et défendre les intérêts des citoyens. Afin de garantir son indépendance, il bénéficie d’une indemnité mensuelle de plus de 5 500 euros net. De plus, pour éviter tout conflit d'intérêt, un député ne peut cumuler son mandat avec certaines autres fonctions, comme celle de maire.</p></li></ol>
+<br>"
 
 
 
@@ -295,52 +370,180 @@ library(stringi)
 library(dplyr)
 library(tidyr)
 
-ui <- fluidPage(
-  theme = shinytheme("readable"),
-  fluidRow(
-    tabsetPanel(
-      tabPanel("Informations générales"),
-      tabPanel("Carte des circonscriptions",
-               selectizeInput("search_input", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
-               actionButton("search_btn", "Chercher"),
-               leafletOutput("ma_carte", height = "500px"),
-               selectizeInput("search_input2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
-               actionButton("show_missing_btn", "Chercher"),
-               h3(textOutput("table_title")),
-               dataTableOutput("circonscriptions_table")
-      ),
-      tabPanel("Partis politiques"),
-      tabPanel("Comment voter ?"),
-      tabPanel("Résultats", fluidRow(
-        # Titre de la page
-        column(12, h2("Résultats des élections législatives de 2024")),
-        
-        # Texte explicatif avec moins de marge
-        column(12, p("Les élections législatives sont terminées et vous souhaitez connaître les résultats ? Vous êtes au bon endroit ! On vous présente la répartition des 577 sièges dans l'hémicycle de l'Assemblée Nationale avec le programme des principaux partis présents. Vous souhaitez également savoir qui a été élu proche de chez vous ? Pas de soucis ! Vous trouverez sur cette page une carte intéractive avec l’élu de votre circonscription.")),
-        
-        # Réduire l'espace entre le texte et le graphique
-        column(12, girafeOutput("assemblee_graph", height = "600px"))
-      ),
-    ),
-    tags$head(
-      tags$style(HTML("
-    .leaflet-control-zoom {
-      position: absolute !important;
-      bottom: 10px;
-      left: 10px;
+ui <- fluidPage(useShinyjs(),
+                theme = shinytheme("readable"),
+                
+                # Onglets
+                navbarPage("Les législatives 2024 pour les nuls",
+                           
+                           # Onglet Informations générales
+                           tabPanel("Informations générales",
+                                    div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS !")),
+                                    div(class = "texte-informations",
+                                        p(intro_onglet1)
+                                    ),
+                                    
+                                    tags$div(
+                                      img(src = "https://www.savigny-le-temple.fr/Statics/Actus/Actus_2024/06_Juin_2024/300624-elections-legislatives-resultats.jpg", 
+                                          class = "image-intro")
+                                    ),
+                                    
+                                    # Bouton déroulant avec flèche pour la première section
+                                    div(class = "titre-page",
+                                        actionButton("toggle_presentation", "Présentation des élections législatives ⬇", class = "btn btn-primary btn-deroulant")
+                                    ),
+                                    
+                                    # Contenu caché par défaut pour la première section
+                                    hidden(
+                                      div(id = "texte_presentation", class = "texte-informations",
+                                          HTML(partie1_onglet1)
+                                      )
+                                    ),
+                                
+                                    
+                                    # Bouton déroulant pour l'historique des élections
+                                    div(class = "titre-page",
+                                        actionButton("toggle_histoire", "Histoire des élections de l’Assemblée Nationale ⬇", class = "btn btn-primary btn-deroulant")
+                                    ),
+                                    
+                                    # Contenu caché pour la section "Histoire des élections"
+                                    hidden(
+                                      div(id = "texte_histoire", class = "texte-informations",
+                                          HTML(partie2_onglet1)
+                                      )
+                                    ),
+                                    
+                                    # Bouton déroulant pour le fonctionnement des élections
+                                    div(class = "titre-page",
+                                        actionButton("toggle_fonctionnement", "Fonctionnement des élections ⬇", class = "btn btn-primary btn-deroulant")
+                                    ),
+                                    
+                                    # Contenu caché pour la section "Fonctionnement des élections"
+                                    hidden(
+                                      div(id = "texte_fonctionnement", class = "texte-informations",
+                                          HTML(partie3_onglet1)
+                                      )
+                                    ),
+                                    
+                                    # Bouton déroulant pour l'importance des élections
+                                    div(class = "titre-page",
+                                        actionButton("toggle_important", "Pourquoi est-ce important d'aller voter ? ⬇", class = "btn btn-primary btn-deroulant")
+                                    ),
+                                    
+                                    # Contenu caché pour la section "Fonctionnement des élections"
+                                    hidden(
+                                      div(id = "texte_important", class = "texte-informations",
+                                          HTML(partie4_onglet1)
+                                      )
+                                    )
+                           ),
+                           
+                           # Onglet Carte des circonscriptions
+                           tabPanel("Carte des circonscriptions",
+                                    selectizeInput("search_input", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+                                    actionButton("search_btn", "Chercher"),
+                                    leafletOutput("ma_carte", height = "500px"),
+                                    selectizeInput("search_input2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+                                    actionButton("show_missing_btn", "Chercher"),
+                                    h3(textOutput("table_title")),
+                                    dataTableOutput("circonscriptions_table")
+                           ),
+                           
+                           # Onglet Partis politiques
+                           tabPanel("Partis politiques"),
+                           
+                           # Onglet Comment voter ?
+                           tabPanel("Comment voter ?"),
+                           
+                           # Onglet Résultats
+                           tabPanel("Résultats", fluidRow(
+                             # Titre de la page
+                             column(12, h2("Résultats des élections législatives de 2024")),
+                             
+                             # Texte explicatif avec moins de marge
+                             column(12, p("Les élections législatives sont terminées et vous souhaitez connaître les résultats ? Vous êtes au bon endroit ! On vous présente la répartition des 577 sièges dans l'hémicycle de l'Assemblée Nationale avec le programme des principaux partis présents. Vous souhaitez également savoir qui a été élu proche de chez vous ? Pas de soucis ! Vous trouverez sur cette page une carte intéractive avec l’élu de votre circonscription.")),
+                             
+                             # Réduire l'espace entre le texte et le graphique
+                             column(12, girafeOutput("assemblee_graph", height = "600px"))
+                           ))
+                ),
+                
+                # Ajout des styles CSS
+                tags$head(
+                  tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"),
+                  tags$style(HTML("
+      .leaflet-control-zoom {
+        position: absolute !important;
+        bottom: 10px;
+        left: 10px;
+      }
+      /* Changer la couleur de la police en blanc pour le tableau */
+      .dataTable, .dataTable th, .dataTable td {
+        color: white !important;
+      }
+      
+      /* Centrer le titre et justifier le texte */
+      .titre-page h2 {
+    font-family: 'Fredoka One', sans-serif;
+    font-size: 50px; /* Augmenter la taille */
+    text-align: center; /* Centrer */
+    margin-bottom: 20px; /* Ajouter un espace en dessous */
     }
-    /* Changer la couleur de la police en blanc pour le tableau */
-    .dataTable, .dataTable th, .dataTable td {
-      color: white !important;
+      
+      .texte-informations {
+        text-align: justify;
+        max-width: 90%;
+        margin: auto;
+      }
+      
+    .image-intro {
+    display: block;
+    margin: 20px auto; /* Centre horizontalement et ajoute un peu d'espace */
+    width: 50%; /* Ajuste la taille à 80% de la largeur de la page */
+    max-width: 1000px; /* Limite la taille max pour éviter une image trop grande */
     }
-  "))
-    )
-  )
-  )
+  
+      /* Espacer les boutons déroulants */
+      .titre-page .btn {
+        margin-bottom: 10px; /* Ajoute un espace entre les boutons */
+      }
+
+      /* Modifier le style des boutons */
+      .btn.btn-primary {
+        background-color: yellow !important; /* Fond jaune */
+        color: black !important; /* Texte noir */
+        border: 1px solid black !important; /* Bordure noire */
+      }
+      
+      /* Modifier le style des boutons au survol */
+      .btn.btn-primary:hover {
+        background-color: gold !important; /* Jaune plus foncé au survol */
+      }
+    "))
+                )
 )
 
-
 server <- function(input, output, session) {
+  
+  # Action pour le bouton "Présentation des élections législatives"
+  observeEvent(input$toggle_presentation, {
+    toggle("texte_presentation")  # Affiche ou cache le contenu de "texte_presentation"
+  })
+  
+  # Action pour le bouton "Histoire des élections de l’Assemblée Nationale"
+  observeEvent(input$toggle_histoire, {
+    toggle("texte_histoire")  # Affiche ou cache le contenu de "texte_histoire"
+  })
+  
+  # Action pour le bouton "Fonctionnement des élections"
+  observeEvent(input$toggle_fonctionnement, {
+    toggle("texte_fonctionnement")  # Affiche ou cache le contenu de "texte_fonctionnement"
+  })
+  
+  # Action pour le bouton "Importance des élections"
+  observeEvent(input$toggle_important, {
+    toggle("texte_important")  # Affiche ou cache le contenu de "texte_important"
+  })
   
   # Mise à jour de la liste des villes
   observe({
@@ -424,12 +627,12 @@ server <- function(input, output, session) {
         )
     })
   })
-  {
-    # Rendre le graphique interactif
-    output$assemblee_graph <- renderGirafe({
-      create_assemblee_graph()  # Appeler la fonction pour créer le graphique
-    })
-  }
+  
+  # Rendre le graphique interactif
+  output$assemblee_graph <- renderGirafe({
+    create_assemblee_graph()  # Appeler la fonction pour créer le graphique
+  })
 }
 
 shinyApp(ui = ui, server = server)
+
