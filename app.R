@@ -525,6 +525,8 @@ ui <- fluidPage(useShinyjs(),
 
 server <- function(input, output, session) {
   
+# Onglet 1
+  
   # Action pour le bouton "Présentation des élections législatives"
   observeEvent(input$toggle_presentation, {
     toggle("texte_presentation")  # Affiche ou cache le contenu de "texte_presentation"
@@ -544,6 +546,10 @@ server <- function(input, output, session) {
   observeEvent(input$toggle_important, {
     toggle("texte_important")  # Affiche ou cache le contenu de "texte_important"
   })
+
+
+
+# Onglet 2
   
   # Mise à jour de la liste des villes
   observe({
@@ -627,6 +633,10 @@ server <- function(input, output, session) {
         )
     })
   })
+  
+
+
+# Onglet 5
   
   # Rendre le graphique interactif
   output$assemblee_graph <- renderGirafe({
