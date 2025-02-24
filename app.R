@@ -12,6 +12,7 @@ library(shinyjs)
 
 
 
+
 # ----- IMPORTS -----
 
 ## Circonscriptions et candidats et résultats
@@ -22,7 +23,6 @@ legislatives_empty <- read_rds("data/legislatives_empty.rds")
 
 ## Villes et coordonnées géographiques
 villes <- read_rds("data/villes.rds")
-
 
 
 
@@ -111,6 +111,8 @@ Si le gouvernement propose des mesures controversées, l’Assemblée nationale 
 <li><p><B>Un représentant au service des citoyens</B></p>
 La fonction principale d’un député est de représenter et défendre les intérêts des citoyens. Afin de garantir son indépendance, il bénéficie d’une indemnité mensuelle de plus de 5 500 euros net. De plus, pour éviter tout conflit d'intérêt, un député ne peut cumuler son mandat avec certaines autres fonctions, comme celle de maire.</p></li></ol>
 <br>"
+
+
 
 
 
@@ -232,6 +234,7 @@ legislatives_empty <- legislatives_empty %>%
 
 
 
+
 # ----- ONGLET 3 : PARTIS POLITIQUES -----
 
 
@@ -337,33 +340,59 @@ create_assemblee_graph <- function() {
 
 # Carte et tableau concernant le candidat élu
 
-legislatives$popup_content2 <- apply(legislatives, 1, function(row) { 
-  # Chercher le candidat élu (où "Elu i" contient "élu")
-  for (i in 1:23) {
+legislatives$popup_content2 <- apply(legislatives, 1, function(row) {
+  # En-tête du tableau
+  lignes <- sprintf("<strong>%s</strong><br>
+                    <table style='border-collapse: collapse; width: 100%%;'>
+                    <tr style='background-color: #333; color: white;'>
+                      <th>Prénom</th><th>Nom</th><th>Parti</th>
+                    </tr>", row["Libellé"])
+  
+  # Filtrage des candidats élus
+  candidats <- lapply(1:23, function(i) {
+    nom <- row[[paste("Nom candidat", i)]]
+    prenom <- row[[paste("Prénom candidat", i)]]
+    nuance <- row[[paste("Nuance candidat", i)]]
+    
+    # Chercher le candidat élu (où "Elu i" contient "élu")
     if (grepl("élu", row[[paste("Elu", i)]], ignore.case = TRUE)) {
-      nom <- row[[paste("Nom candidat", i)]]
-      prenom <- row[[paste("Prénom candidat", i)]]
-      nuance <- row[[paste("Nuance candidat", i)]]
-      
       if (!is.na(nom) && !is.na(prenom) && !is.na(nuance) && nom != "" && prenom != "" && nuance != "") {
-        return(sprintf("<strong>%s</strong><br>
-                        <table style='border-collapse: collapse; width: 100%%;'>
-                        <tr style='background-color: #333; color: white;'>
-                          <th>Prénom</th><th>Nom</th><th>Parti</th>
-                        </tr>
-                        <tr>
-                          <td>%s</td><td>%s</td><td>%s</td>
-                        </tr>
-                        </table>", 
-                       row["Libellé"], prenom, nom, nuance))
+        couleur <- if (nuance %in% names(couleurs)) couleurs[[nuance]] else "#FFFFFF"  # Assurer une couleur de fond même sans correspondance
+        return(list(prenom = prenom, nom = nom, nuance = nuance, couleur = couleur))
+      } else {
+        return(NULL)  # Ignore les candidats incomplets
       }
     }
+  })
+  
+  # Suppression des NULL (candidats invalides)
+  candidats <- Filter(Negate(is.null), candidats)
+  
+  # Tri des candidats selon l'ordre des partis
+  if (length(candidats) > 0) {
+    candidats_sorted <- candidats[order(match(sapply(candidats, function(x) x$nuance), ordre_partis))]
+    
+    # Génération des lignes du tableau avec couleurs
+    lignes_candidats <- sapply(candidats_sorted, function(candidat) {
+      sprintf("<tr style='background-color: %s; color: white;'>
+                <td>%s</td><td>%s</td><td>%s</td></tr>", 
+              candidat$couleur, candidat$prenom, candidat$nom, candidat$nuance)
+    })
+    
+    # Fusionner les lignes des candidats dans le tableau
+    popup_text <- paste0(lignes, paste(lignes_candidats, collapse = ""), "</table>")
+  } else {
+    popup_text <- paste0(lignes, "<tr><td colspan='3' style='text-align:center;'>Aucun candidat</td></tr></table>")
   }
-  return(NA)  # Retourner NA si aucun candidat élu n'est trouvé
+  
+  HTML(popup_text)
 })
+
+
 
 # Conversion des données géospatiales en format sf compatible avec leaflet
 legislatives_sf <- st_as_sf(legislatives)
+
 
 
 
