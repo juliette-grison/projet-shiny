@@ -27,6 +27,7 @@ villes <- read_rds("data/villes.rds")
 
 
 
+
 # ----- ONGLET 1 : INFORMATIONS GENERALES -----
 
 intro_onglet1 <- "
@@ -195,32 +196,6 @@ legislatives$popup_content <- apply(legislatives, 1, function(row) {
 })
 
 
-# Conversion des données géospatiales en format sf compatible avec leaflet
-legislatives_sf <- st_as_sf(legislatives)
-
-# Création de la carte avec leaflet
-leaflet(legislatives_sf) |>
-  addTiles() |>
-  addPolygons(
-    popup = legislatives_sf$popup_content,
-    label = ~Libellé,  # Affiche le nom de la circonscription au survol
-    labelOptions = labelOptions(
-      direction = "auto",  # La direction du label
-      style = list(
-        "font-weight" = "bold",
-        "color" = "black",
-        "background" = "white",
-        "padding" = "5px"
-      )
-    ),
-    highlight = highlightOptions(
-      weight = 5,
-      color = "#666",  # Color of the border when highlighted
-      fillOpacity = 0.7,  # Opacity of the fill on hover
-      bringToFront = TRUE  # Bring the polygon to front when hovered
-    )
-  )
-
 ## Autres circonscriptions
 
 legislatives_empty <- legislatives_empty %>%
@@ -360,6 +335,39 @@ create_assemblee_graph <- function() {
   
 }
 
+# Carte et tableau concernant le candidat élu
+
+legislatives$popup_content2 <- apply(legislatives, 1, function(row) { 
+  # Chercher le candidat élu (où "Elu i" contient "élu")
+  for (i in 1:23) {
+    if (grepl("élu", row[[paste("Elu", i)]], ignore.case = TRUE)) {
+      nom <- row[[paste("Nom candidat", i)]]
+      prenom <- row[[paste("Prénom candidat", i)]]
+      nuance <- row[[paste("Nuance candidat", i)]]
+      
+      if (!is.na(nom) && !is.na(prenom) && !is.na(nuance) && nom != "" && prenom != "" && nuance != "") {
+        return(sprintf("<strong>%s</strong><br>
+                        <table style='border-collapse: collapse; width: 100%%;'>
+                        <tr style='background-color: #333; color: white;'>
+                          <th>Prénom</th><th>Nom</th><th>Parti</th>
+                        </tr>
+                        <tr>
+                          <td>%s</td><td>%s</td><td>%s</td>
+                        </tr>
+                        </table>", 
+                       row["Libellé"], prenom, nom, nuance))
+      }
+    }
+  }
+  return(NA)  # Retourner NA si aucun candidat élu n'est trouvé
+})
+
+# Conversion des données géospatiales en format sf compatible avec leaflet
+legislatives_sf <- st_as_sf(legislatives)
+
+
+
+
 #----- APP PRINCIPALE -----
 
 library(shiny)
@@ -399,7 +407,7 @@ ui <- fluidPage(useShinyjs(),
                                           HTML(partie1_onglet1)
                                       )
                                     ),
-                                
+                                    
                                     
                                     # Bouton déroulant pour l'historique des élections
                                     div(class = "titre-page",
@@ -440,13 +448,13 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Carte des circonscriptions
                            tabPanel("Carte des circonscriptions",
-                                    selectizeInput("search_input", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
-                                    actionButton("search_btn", "Chercher"),
+                                    selectizeInput("recherche", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+                                    actionButton("bouton", "Chercher"),
                                     leafletOutput("ma_carte", height = "500px"),
-                                    selectizeInput("search_input2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
-                                    actionButton("show_missing_btn", "Chercher"),
-                                    h3(textOutput("table_title")),
-                                    dataTableOutput("circonscriptions_table")
+                                    selectizeInput("recherche2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+                                    actionButton("bouton2", "Chercher"),
+                                    h3(textOutput("titre_tableau")),
+                                    dataTableOutput("mon_tableau")
                            ),
                            
                            # Onglet Partis politiques
@@ -464,7 +472,16 @@ ui <- fluidPage(useShinyjs(),
                              column(12, p("Les élections législatives sont terminées et vous souhaitez connaître les résultats ? Vous êtes au bon endroit ! On vous présente la répartition des 577 sièges dans l'hémicycle de l'Assemblée Nationale avec le programme des principaux partis présents. Vous souhaitez également savoir qui a été élu proche de chez vous ? Pas de soucis ! Vous trouverez sur cette page une carte intéractive avec l’élu de votre circonscription.")),
                              
                              # Réduire l'espace entre le texte et le graphique
-                             column(12, girafeOutput("assemblee_graph", height = "600px"))
+                             column(12, girafeOutput("assemblee_graph", height = "600px")),
+                             
+                             # Carte et tableau
+                             selectizeInput("recherche3", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+                             actionButton("bouton3", "Chercher"),
+                             leafletOutput("ma_carte2", height = "500px"),
+                             selectizeInput("recherche4", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+                             actionButton("bouton4", "Chercher"),
+                             h3(textOutput("titre_tableau2")),
+                             dataTableOutput("mon_tableau2")
                            ))
                 ),
                 
@@ -525,7 +542,7 @@ ui <- fluidPage(useShinyjs(),
 
 server <- function(input, output, session) {
   
-# Onglet 1
+  # Onglet 1
   
   # Action pour le bouton "Présentation des élections législatives"
   observeEvent(input$toggle_presentation, {
@@ -546,14 +563,14 @@ server <- function(input, output, session) {
   observeEvent(input$toggle_important, {
     toggle("texte_important")  # Affiche ou cache le contenu de "texte_important"
   })
-
-
-
-# Onglet 2
+  
+  
+  
+  # Onglet 2
   
   # Mise à jour de la liste des villes
   observe({
-    updateSelectizeInput(session, "search_input", choices = villes$`Libellé commune`, selected = "", server = TRUE)
+    updateSelectizeInput(session, "recherche", choices = villes$`Libellé commune`, selected = "", server = TRUE)
   })
   
   # Fonction pour afficher la carte
@@ -568,10 +585,10 @@ server <- function(input, output, session) {
   })
   
   # Recherche et zoom sur la ville
-  observeEvent(input$search_btn, {
-    req(input$search_input)
+  observeEvent(input$bouton, {
+    req(input$recherche)
     
-    recherche <- tolower(stri_trans_general(input$search_input, "Latin-ASCII"))
+    recherche <- tolower(stri_trans_general(input$recherche, "Latin-ASCII"))
     ville_trouvee <- villes %>%
       mutate(label_clean = tolower(stri_trans_general(`Libellé commune`, "Latin-ASCII"))) %>%
       filter(label_clean == recherche)
@@ -586,7 +603,7 @@ server <- function(input, output, session) {
   
   # Mise à jour de la liste des villes pour le second champ
   observe({
-    updateSelectizeInput(session, "search_input2", choices = legislatives_empty$`Libellé commune`, selected = "", server = TRUE)
+    updateSelectizeInput(session, "recherche2", choices = legislatives_empty$`Libellé commune`, selected = "", server = TRUE)
   })
   
   # Transformation des données pour le tableau
@@ -606,11 +623,11 @@ server <- function(input, output, session) {
   }
   
   # Affichage du tableau des candidats
-  observeEvent(input$show_missing_btn, {
-    req(input$search_input2)
+  observeEvent(input$bouton2, {
+    req(input$recherche2)
     
     data_filtered <- legislatives_empty %>%
-      filter(`Libellé commune` == input$search_input2)
+      filter(`Libellé commune` == input$recherche2)
     
     if (nrow(data_filtered) == 0) {
       showNotification("Aucune donnée trouvée pour cette circonscription.", type = "error")
@@ -619,10 +636,10 @@ server <- function(input, output, session) {
     
     table_data <- transform_legislatives(data_filtered)
     
-    output$table_title <- renderText({ unique(data_filtered$`Libellé`) })
+    output$titre_tableau <- renderText({ unique(data_filtered$`Libellé`) })
     
     # Ajout de la couleur de fond dans la table sans ajouter une colonne
-    output$circonscriptions_table <- renderDataTable({
+    output$mon_tableau <- renderDataTable({
       datatable(table_data, options = list(pageLength = 10), 
                 escape = FALSE,  # Permet d'afficher du HTML
                 rownames = FALSE) %>%
@@ -634,15 +651,100 @@ server <- function(input, output, session) {
     })
   })
   
-
-
-# Onglet 5
+  
+  
+  # Onglet 5
   
   # Rendre le graphique interactif
   output$assemblee_graph <- renderGirafe({
     create_assemblee_graph()  # Appeler la fonction pour créer le graphique
   })
+  
+  
+  # Mise à jour de la liste des villes
+  observe({
+    updateSelectizeInput(session, "recherche3", choices = villes$`Libellé commune`, selected = "", server = TRUE)
+  })
+  
+  # Fonction pour afficher la carte
+  output$ma_carte2 <- renderLeaflet({
+    leaflet(legislatives_sf) %>%
+      addTiles() %>%
+      addPolygons(
+        popup = ~popup_content2,
+        label = ~Libellé,
+        highlight = highlightOptions(weight = 5, color = "#666", fillOpacity = 0.7)
+      )
+  })
+  
+  # Recherche et zoom sur la ville
+  observeEvent(input$bouton3, {
+    req(input$recherche3)
+    
+    recherche <- tolower(stri_trans_general(input$recherche3, "Latin-ASCII"))
+    ville_trouvee <- villes %>%
+      mutate(label_clean = tolower(stri_trans_general(`Libellé commune`, "Latin-ASCII"))) %>%
+      filter(label_clean == recherche)
+    
+    if (nrow(ville_trouvee) > 0) {
+      leafletProxy("ma_carte2") %>%
+        setView(lng = ville_trouvee$Longitude[1], lat = ville_trouvee$Latitude[1], zoom = 12)
+    } else {
+      showNotification("Ville non trouvée.", type = "error")
+    }
+  })
+  
+  # Mise à jour de la liste des villes pour le second champ
+  observe({
+    updateSelectizeInput(session, "recherche4", choices = legislatives_empty$`Libellé commune`, selected = "", server = TRUE)
+  })
+  
+  # Transformation des données pour le tableau
+  transform_legislatives <- function(df) {
+    df_long <- df %>%
+      pivot_longer(cols = starts_with("Prénom candidat"), names_to = "index", values_to = "Prénom") %>%
+      mutate(
+        index_num = as.integer(sub("Prénom candidat ", "", index)),
+        Nom = sapply(index_num, function(i) df[[paste0("Nom candidat ", i)]]),
+        Parti = sapply(index_num, function(i) df[[paste0("Nuance candidat ", i)]])
+      ) %>%
+      select(Prénom, Nom, Parti) %>%
+      filter(!is.na(Prénom) & !is.na(Nom) & !is.na(Parti)) %>%
+      arrange(match(Parti, ordre_partis))  # Tri en fonction de l'ordre des partis
+    
+    return(df_long)
+  }
+  
+  # Affichage du tableau des candidats
+  observeEvent(input$bouton4, {
+    req(input$recherche4)
+    
+    data_filtered <- legislatives_empty %>%
+      filter(`Libellé commune` == input$recherche4)
+    
+    if (nrow(data_filtered) == 0) {
+      showNotification("Aucune donnée trouvée pour cette circonscription.", type = "error")
+      return()
+    }
+    
+    table_data <- transform_legislatives(data_filtered)
+    
+    output$titre_tableau2 <- renderText({ unique(data_filtered$`Libellé`) })
+    
+    # Ajout de la couleur de fond dans la table sans ajouter une colonne
+    output$mon_tableau2 <- renderDataTable({
+      datatable(table_data, options = list(pageLength = 10), 
+                escape = FALSE,  # Permet d'afficher du HTML
+                rownames = FALSE) %>%
+        formatStyle(
+          columns = c("Prénom", "Nom", "Parti"),
+          target = "row",
+          backgroundColor = styleEqual(names(couleurs), couleurs)  # Applique la couleur de fond selon le parti
+        )
+    })
+  })
 }
-
-shinyApp(ui = ui, server = server)
-
+  
+  shinyApp(ui = ui, server = server)
+  
+  
