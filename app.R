@@ -15,14 +15,17 @@ library(shinyjs)
 
 # ----- IMPORTS -----
 
-## Circonscriptions et candidats et résultats
+## Circonscriptions, candidats et résultats 1er et 2nd tour (candidats 20 à 23)
 legislatives <- read_rds("data/legislatives.rds")
 
-## Circonscriptions non affichées sur la carte
+## Circonscriptions non affichées sur la carte et résultats 1er tour
 legislatives_empty <- read_rds("data/legislatives_empty.rds")
 
 ## Villes et coordonnées géographiques
 villes <- read_rds("data/villes.rds")
+
+## Circonscriptions non affichées sur la carte et résultats 1er et 2nd tour (candidats 20 à 23)
+legislatives_empty2 <- read_rds("data/legislatives_empty2.rds")
 
 
 
@@ -120,36 +123,35 @@ La fonction principale d’un député est de représenter et défendre les int�
 
 # Couleurs par parti
 couleurs <- c(
-  "Extrême Gauche"          = "#A50026",  # Rouge très foncé
-  "France Insoumise"        = "#D1191B",  # Rouge foncé
-  "Union de la Gauche"      = "#D73027",  # Rouge vif
-  "Parti Socialiste"        = "#F46D43",  # Rouge orangé
-  "Écologistes"             = "#1A9850",  # Vert soutenu
-  "Divers Gauche"           = "#FDAE61",  # Orange clair
-  "Ensemble"                = "#FFD700",  # Jaune doré
-  "Divers Centre"           = "#FEC44F",  # Jaune orangé
-  "Union des Démocrates et Indépendants" = "#92C5DE",  # Bleu ciel
-  "Les Républicains"        = "#4575B4",  # Bleu moyen
-  "Divers Droite"           = "#74ADD1",  # Bleu clair
-  "Régionalistes"           = "#7F3B08",  # Brun foncé
-  "Divers"                  = "#BEBEBE",  # Gris moyen
-  "Divers Souverainistes"   = "#D9D9D9",  # Gris clair
-  "Union de la Droite"      = "#313695",  # Bleu foncé
-  "Horizons"                = "#542788",  # Violet
-  "Reconquête"              = "#2D004B",  # Violet très foncé
-  "Extrême Droite"          = "#081D58",  # Bleu nuit profond
-  "Rassemblement National"  = "#041E42"   # Bleu marine presque noir
+  "Extrême Gauche"                     = "#A50026",  # Rouge très foncé  
+  "France Insoumise"                    = "#D1191B",  # Rouge foncé  
+  "Union de la Gauche"                  = "#D73027",  # Rouge vif  
+  "Parti Socialiste"                    = "#F46D43",  # Rouge orangé  
+  "Écologistes"                         = "#1A9850",  # Vert soutenu  
+  "Divers Gauche"                       = "#FDAE61",  # Orange clair  
+  "Ensemble"                            = "#FFD700",  # Jaune doré  
+  "Divers Centre"                        = "#FEC44F",  # Jaune orangé  
+  "Union des Démocrates et Indépendants" = "#92C5DE",  # Bleu ciel  
+  "Les Républicains"                     = "#4575B4",  # Bleu moyen  
+  "Divers Droite"                        = "#74ADD1",  # Bleu clair  
+  "Régionalistes"                        = "#7F3B08",  # Brun foncé  
+  "Divers"                               = "#BEBEBE",  # Gris moyen  
+  "Divers Souverainistes"                = "#D9D9D9",  # Gris clair  
+  "Union de la Droite"                   = "#313695",  # Bleu foncé  
+  "Horizons"                             = "#542788",  # Violet  
+  "Reconquête"                           = "#2D004B",  # Violet très foncé  
+  "Extrême Droite"                       = "#081D58",  # Bleu nuit profond  
+  "Rassemblement National"               = "#041E42"   # Bleu marine presque noir  
 )
 
 # Ordre des partis de l'extrême gauche à l'extrême droite
 ordre_partis <- c(
   "Extrême Gauche", "France Insoumise", "Union de la Gauche", "Parti Socialiste", "Écologistes",
-  "Divers Gauche", "Ensemble", "Divers Centre", "Union des Démocrates et Indépendants",
-  "Les Républicains", "Divers Droite", "Régionalistes", "Divers",
-  "Divers Souverainistes", "Union de la Droite", "Horizons", "Reconquête",
-  "Extrême Droite", "Rassemblement National"
+  "Divers Gauche", "Ensemble", "Divers Centre", 
+  "Union des Démocrates et Indépendants", "Les Républicains", "Divers Droite", 
+  "Régionalistes", "Divers", "Divers Souverainistes", "Union de la Droite", 
+  "Horizons", "Reconquête", "Extrême Droite", "Rassemblement National"
 )
-
 
 # Génération du contenu des popups
 legislatives$popup_content <- apply(legislatives, 1, function(row) {
@@ -196,40 +198,6 @@ legislatives$popup_content <- apply(legislatives, 1, function(row) {
   
   HTML(popup_text)
 })
-
-
-## Autres circonscriptions
-
-legislatives_empty <- legislatives_empty %>%
-  rowwise() %>%
-  mutate(
-    candidats_info = list(
-      tibble(
-        Prénom = c(`Prénom candidat 1`, `Prénom candidat 2`, `Prénom candidat 3`, 
-                   `Prénom candidat 4`, `Prénom candidat 5`, `Prénom candidat 6`, 
-                   `Prénom candidat 7`, `Prénom candidat 8`, `Prénom candidat 9`, 
-                   `Prénom candidat 10`, `Prénom candidat 11`, `Prénom candidat 12`, 
-                   `Prénom candidat 13`, `Prénom candidat 14`, `Prénom candidat 15`, 
-                   `Prénom candidat 16`, `Prénom candidat 17`, `Prénom candidat 18`, 
-                   `Prénom candidat 19`),
-        Nom = c(`Nom candidat 1`, `Nom candidat 2`, `Nom candidat 3`, 
-                `Nom candidat 4`, `Nom candidat 5`, `Nom candidat 6`, 
-                `Nom candidat 7`, `Nom candidat 8`, `Nom candidat 9`, 
-                `Nom candidat 10`, `Nom candidat 11`, `Nom candidat 12`, 
-                `Nom candidat 13`, `Nom candidat 14`, `Nom candidat 15`, 
-                `Nom candidat 16`, `Nom candidat 17`, `Nom candidat 18`, 
-                `Nom candidat 19`),
-        Parti = c(`Nuance candidat 1`, `Nuance candidat 2`, `Nuance candidat 3`, 
-                  `Nuance candidat 4`, `Nuance candidat 5`, `Nuance candidat 6`, 
-                  `Nuance candidat 7`, `Nuance candidat 8`, `Nuance candidat 9`, 
-                  `Nuance candidat 10`, `Nuance candidat 11`, `Nuance candidat 12`, 
-                  `Nuance candidat 13`, `Nuance candidat 14`, `Nuance candidat 15`, 
-                  `Nuance candidat 16`, `Nuance candidat 17`, `Nuance candidat 18`, 
-                  `Nuance candidat 19`)
-      )
-    )
-  ) %>%
-  ungroup()
 
 
 
@@ -636,7 +604,7 @@ server <- function(input, output, session) {
   })
   
   # Transformation des données pour le tableau
-  transform_legislatives <- function(df) {
+  legislatives_long <- function(df) {
     df_long <- df %>%
       pivot_longer(cols = starts_with("Prénom candidat"), names_to = "index", values_to = "Prénom") %>%
       mutate(
@@ -655,17 +623,17 @@ server <- function(input, output, session) {
   observeEvent(input$bouton2, {
     req(input$recherche2)
     
-    data_filtered <- legislatives_empty %>%
+    data_filtre <- legislatives_empty %>%
       filter(`Libellé commune` == input$recherche2)
     
-    if (nrow(data_filtered) == 0) {
+    if (nrow(data_filtre) == 0) {
       showNotification("Aucune donnée trouvée pour cette circonscription.", type = "error")
       return()
     }
     
-    table_data <- transform_legislatives(data_filtered)
+    table_data <- legislatives_long(data_filtre)
     
-    output$titre_tableau <- renderText({ unique(data_filtered$`Libellé`) })
+    output$titre_tableau <- renderText({ unique(data_filtre$`Libellé`) })
     
     # Ajout de la couleur de fond dans la table sans ajouter une colonne
     output$mon_tableau <- renderDataTable({
@@ -725,20 +693,22 @@ server <- function(input, output, session) {
   
   # Mise à jour de la liste des villes pour le second champ
   observe({
-    updateSelectizeInput(session, "recherche4", choices = legislatives_empty$`Libellé commune`, selected = "", server = TRUE)
+    updateSelectizeInput(session, "recherche4", choices = legislatives_empty2$`Libellé commune`, selected = "", server = TRUE)
   })
   
-  # Transformation des données pour le tableau
-  transform_legislatives <- function(df) {
+  # Transformation des données pour le tableau (garder seulement les candidats élus)
+  legislatives_long2 <- function(df) {
     df_long <- df %>%
       pivot_longer(cols = starts_with("Prénom candidat"), names_to = "index", values_to = "Prénom") %>%
       mutate(
         index_num = as.integer(sub("Prénom candidat ", "", index)),
         Nom = sapply(index_num, function(i) df[[paste0("Nom candidat ", i)]]),
-        Parti = sapply(index_num, function(i) df[[paste0("Nuance candidat ", i)]])
+        Parti = sapply(index_num, function(i) df[[paste0("Nuance candidat ", i)]]),
+        Elu = sapply(index_num, function(i) df[[paste0("Elu ", i)]])  # Vérification de la colonne "Elu i"
       ) %>%
+      # Garder uniquement les candidats élus
+      filter(!is.na(Prénom) & !is.na(Nom) & !is.na(Parti) & grepl("élu", Elu, ignore.case = TRUE)) %>%
       select(Prénom, Nom, Parti) %>%
-      filter(!is.na(Prénom) & !is.na(Nom) & !is.na(Parti)) %>%
       arrange(match(Parti, ordre_partis))  # Tri en fonction de l'ordre des partis
     
     return(df_long)
@@ -748,17 +718,17 @@ server <- function(input, output, session) {
   observeEvent(input$bouton4, {
     req(input$recherche4)
     
-    data_filtered <- legislatives_empty %>%
+    data_filtre2 <- legislatives_empty2 %>%
       filter(`Libellé commune` == input$recherche4)
     
-    if (nrow(data_filtered) == 0) {
+    if (nrow(data_filtre2) == 0) {
       showNotification("Aucune donnée trouvée pour cette circonscription.", type = "error")
       return()
     }
     
-    table_data <- transform_legislatives(data_filtered)
+    table_data <- legislatives_long2(data_filtre2)
     
-    output$titre_tableau2 <- renderText({ unique(data_filtered$`Libellé`) })
+    output$titre_tableau2 <- renderText({ unique(data_filtre2$`Libellé`) })
     
     # Ajout de la couleur de fond dans la table sans ajouter une colonne
     output$mon_tableau2 <- renderDataTable({
@@ -772,8 +742,9 @@ server <- function(input, output, session) {
         )
     })
   })
+  
 }
   
-  shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server)
   
   
