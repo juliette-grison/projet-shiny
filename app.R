@@ -445,17 +445,34 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Carte des circonscriptions
                            tabPanel("Carte des circonscriptions",
+                                    h2("Candidats et circonscriptions : faites votre recherche"),
                                     selectizeInput("recherche", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
                                     actionButton("bouton", "Chercher"),
                                     leafletOutput("ma_carte", height = "500px"),
-                                    selectizeInput("recherche2", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+                                    selectizeInput("recherche2", "Ville non listée ? Recherchez-la ici.", choices = NULL, selected = "", multiple = FALSE),
                                     actionButton("bouton2", "Chercher"),
                                     h3(textOutput("titre_tableau")),
                                     dataTableOutput("mon_tableau")
                            ),
                            
                            # Onglet Partis politiques
-                           tabPanel("Partis politiques"),
+                           tabPanel("Partis politiques",
+                                    fluidRow(
+                                      lapply(ordre_partis, function(parti) {
+                                        actionButton(inputId = paste0("parti_", gsub(" ", "_", parti)), 
+                                                     label = parti, 
+                                                     icon = icon("check-square"), 
+                                                     style = "width: 150px; height: 150px; font-size: 14px; margin: 5px; background-color: #f4f4f4; border: 1px solid #ddd;")
+                                      })
+                                    ),
+                                    # Zone où l'onglet sera mis à jour
+                                    tabsetPanel(id = "onglets_partis",
+                                                tabPanel("Introduction", p("Sélectionnez un parti pour plus d'informations")),
+                                                lapply(ordre_partis, function(parti) {
+                                                  tabPanel(parti, h3(paste("Informations sur le parti:", parti)))
+                                                })
+                                    )
+                           ),
                            
                            # Onglet Comment voter ?
                            tabPanel("Comment voter ?"),
@@ -475,7 +492,7 @@ ui <- fluidPage(useShinyjs(),
                              selectizeInput("recherche3", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
                              actionButton("bouton3", "Chercher"),
                              leafletOutput("ma_carte2", height = "500px"),
-                             selectizeInput("recherche4", "Rechercher une autre ville", choices = NULL, selected = "", multiple = FALSE),
+                             selectizeInput("recherche4", "Ville non listée ? Recherchez-la ici.", choices = NULL, selected = "", multiple = FALSE),
                              actionButton("bouton4", "Chercher"),
                              h3(textOutput("titre_tableau2")),
                              dataTableOutput("mon_tableau2")
@@ -647,7 +664,20 @@ server <- function(input, output, session) {
         )
     })
   })
+
   
+  # Onglet 3
+
+  observe({
+    # Crée un événement pour chaque bouton correspondant à un parti
+    lapply(ordre_partis, function(parti) {
+      observeEvent(input[[paste0("parti_", gsub(" ", "_", parti))]], {
+        # Quand un parti est sélectionné, on met à jour l'onglet pour celui-ci
+        updateTabsetPanel(session, "onglets_partis", selected = parti)
+      })
+    })
+  })
+}
   
   
   # Onglet 5
