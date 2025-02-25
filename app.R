@@ -205,9 +205,51 @@ legislatives$popup_content <- apply(legislatives, 1, function(row) {
 
 # ----- ONGLET 3 : PARTIS POLITIQUES -----
 
+tetes_de_liste <- c(
+  "Extrême Gauche" = "Manon Aubry",
+  "France Insoumise" = "Manon Aubry",
+  "Union de la Gauche" = "Léon Deffontaines",
+  "Parti Socialiste" = "Raphaël Glucksmann",
+  "Écologistes" = "Marie Toussaint",
+  "Divers Gauche" = "Léon Deffontaines",
+  "Ensemble" = "Valérie Hayer",
+  "Divers Centre" = "Valérie Hayer",
+  "Union des Démocrates et Indépendants" = "Valérie Hayer",
+  "Les Républicains" = "François-Xavier Bellamy",
+  "Divers Droite" = "François-Xavier Bellamy",
+  "Régionalistes" = "Léon Deffontaines",
+  "Divers" = "Léon Deffontaines",
+  "Divers Souverainistes" = "Léon Deffontaines",
+  "Union de la Droite" = "François-Xavier Bellamy",
+  "Horizons" = "Valérie Hayer",
+  "Reconquête" = "Marion Maréchal",
+  "Extrême Droite" = "Jordan Bardella",
+  "Rassemblement National" = "Jordan Bardella"
+)
 
 
 
+programmes_partis <- c(
+  "Extrême Gauche" = "Le programme de l'Extrême Gauche prône une transformation radicale de la société. Leur objectif est d'abolir le capitalisme et d'instaurer un système économique basé sur la planification, la collectivisation et la redistribution des richesses. Ils proposent une nationalisation de secteurs stratégiques tels que l'énergie, les transports et les banques. Sur le plan social, ils défendent une augmentation des salaires, la réduction du temps de travail, la protection des droits des travailleurs, et une sécurité sociale renforcée. En matière écologique, l'Extrême Gauche propose une transition énergétique rapide vers des énergies renouvelables, une réduction drastique des émissions de gaz à effet de serre et une transformation des modes de production pour limiter les inégalités environnementales.",
+  "France Insoumise" = "La France Insoumise propose une 'Sixième République' avec une refonte des institutions pour renforcer la démocratie directe et la participation citoyenne. Leur programme économique repose sur une économie verte et solidaire, avec un renforcement du service public, des investissements dans les énergies renouvelables, et une relocalisation de la production. Ils plaident pour la mise en place d'une taxe sur les grandes fortunes, l'augmentation des salaires, la réduction du temps de travail, et l'instauration d'un revenu universel. La France Insoumise propose aussi de sortir des traités européens actuels et de construire une autre Europe, plus sociale et solidaire, ainsi qu'une politique étrangère plus indépendante et de solidarité internationale.",
+  "Union de la Gauche" = "L'Union de la Gauche vise une politique de justice sociale, avec des réformes fiscales pour redistribuer les richesses, un renforcement des services publics, et une transition énergétique verte. Ils soutiennent la création d'une 'banque publique d'investissement' pour financer des projets industriels et sociaux, notamment dans les secteurs de la santé, de l'éducation et de l'écologie. Sur le plan écologique, ils proposent une sortie progressive du nucléaire, une transition vers les énergies renouvelables, et la mise en place d'un 'Green New Deal' européen. En matière de droits sociaux, ils soutiennent l'augmentation du salaire minimum et une réforme des retraites pour assurer une retraite à taux plein pour tous.",
+  "Parti Socialiste" = "Le Parti Socialiste se concentre sur une politique de croissance économique inclusive, en soutenant les secteurs productifs tout en réduisant les inégalités sociales. Ils proposent une réforme fiscale avec une hausse de l'impôt sur les grandes fortunes et une réduction de la fiscalité sur les classes moyennes. Leur programme inclut des investissements dans la transition énergétique, la décarbonation des secteurs industriels et la mise en place d'un plan de relance verte. Sur le plan social, ils soutiennent la création de nouveaux services publics dans les secteurs de la santé et de l'éducation, une réforme du marché du travail pour une meilleure protection des travailleurs, et une lutte contre la pauvreté et l'exclusion sociale.",
+  "Écologistes" = "Les Écologistes mettent l'accent sur la transition écologique pour lutter contre le dérèglement climatique, la pollution et la destruction des écosystèmes. Ils prônent un modèle économique basé sur la durabilité et l'économie circulaire, avec des investissements massifs dans les énergies renouvelables, les transports écologiques et l'agriculture bio. Leur programme inclut une sortie rapide du nucléaire et la fermeture des centrales à charbon, ainsi qu'une politique de zéro déchet, un système alimentaire local et durable, et une politique de mobilité verte. En matière sociale, ils soutiennent l'accès universel à la santé, à l'éducation et au logement, et une redistribution des richesses pour réduire les inégalités.",
+  "Divers Gauche" = "Les partis de la Divers Gauche plaident pour une répartition plus juste des ressources et un renforcement des services publics. Leur programme inclut une réforme fiscale pour lutter contre l'évasion fiscale et augmenter les dépenses publiques dans des secteurs comme l'éducation, la santé et les transports publics. Sur le plan écologique, ils soutiennent une transition énergétique rapide, une économie de la décroissance, la protection des écosystèmes et la lutte contre les inégalités environnementales. Ils sont aussi favorables à une démocratie plus directe et plus participative, avec un renforcement du rôle des citoyens dans les décisions politiques.",
+  "Ensemble" = "Ensemble est un mouvement progressiste qui défend une politique d'union de la gauche pour lutter contre les inégalités économiques et sociales. Leur programme repose sur une politique sociale ambitieuse, avec l'instauration d'un revenu de base universel, l'augmentation du salaire minimum, et des investissements dans la transition énergétique. Ils soutiennent également la mise en place d'une fiscalité plus progressive et une réforme de l'impôt sur les sociétés pour mieux répartir les richesses. En matière d'environnement, Ensemble prône une décarbonation rapide de l'économie et un soutien aux industries écologiques et locales.",
+  "Divers Centre" = "Les partis du Divers Centre prônent une politique économique libérale et modérée. Leur programme inclut une réduction des dépenses publiques, une baisse des impôts pour les entreprises et les classes moyennes, et la réduction des déficits publics. En matière sociale, ils soutiennent des réformes pour moderniser les services publics, tout en préservant un état-providence pour les plus vulnérables. En matière de politique étrangère, ils défendent une Europe plus compétitive, la relance de la croissance économique et un renforcement des partenariats commerciaux internationaux.",
+  "Union des Démocrates et Indépendants" = "L'Union des Démocrates et Indépendants se positionne sur une ligne pro-européenne et libérale. Leur programme inclut la réduction des impôts, la flexibilisation du marché du travail, et des réformes pour favoriser l'innovation et la compétitivité des entreprises. Ils soutiennent la décentralisation des pouvoirs et la mise en place d'une gouvernance locale plus forte. Ils souhaitent également une réforme de l'Union Européenne pour la rendre plus efficace et moins bureaucratique. En matière sociale, ils promeuvent la réduction des dépenses publiques et un système de protection sociale plus ciblé.",
+  "Les Républicains" = "Les Républicains défendent une politique de droite traditionnelle, centrée sur la réduction des impôts, la réduction des dépenses publiques, et un renforcement de la sécurité intérieure. Ils soutiennent une politique de fermeté sur l'immigration et la lutte contre le terrorisme, ainsi qu'une modernisation du code du travail pour plus de flexibilité. Leur programme inclut également des réformes pour soutenir les entreprises et l'entrepreneuriat, avec un accent sur la compétitivité de la France sur la scène internationale. Ils plaident pour une Europe plus forte mais moins intrusive.",
+  "Divers Droite" = "Les partis de la Divers Droite proposent une politique plus conservatrice et économique, avec un programme centré sur la réduction de l'impôt, la réforme du marché du travail, et la défense de l'ordre public. Ils sont en faveur de la réduction des aides sociales et du contrôle renforcé de l'immigration. Ils soutiennent également une Europe plus ouverte au libre-échange et une politique de défense nationale plus indépendante.",
+  "Régionalistes" = "Les Régionalistes prônent une politique de décentralisation accrue et un renforcement de l'autonomie des régions. Leur programme inclut une gestion des ressources locales, une répartition plus équitable des richesses entre les régions, et un soutien aux cultures et aux langues régionales. Ils souhaitent également un renforcement des infrastructures régionales et une plus grande prise en compte des spécificités locales dans les décisions politiques nationales.",
+  "Divers" = "Les partis Divers se caractérisent par une pluralité de positions politiques, allant de la défense des droits des minorités à la promotion de politiques inclusives et progressistes. Leur programme commun inclut la lutte contre les discriminations, une réforme des institutions pour garantir une plus grande transparence et démocratie, et un soutien aux initiatives locales pour renforcer la cohésion sociale et territoriale.",
+  "Divers Souverainistes" = "Les partis Divers Souverainistes défendent la restauration de la souveraineté nationale, en particulier en matière économique et politique. Leur programme inclut un renforcement des frontières, une politique de sécurité stricte, et un retrait des engagements internationaux, notamment vis-à-vis de l'Union Européenne. Ils sont en faveur de la mise en place de politiques protectionnistes pour soutenir l'industrie nationale et la réduction des flux migratoires.",
+  "Union de la Droite" = "L'Union de la Droite défend une politique conservatrice et libérale, centrée sur la réduction des impôts, la suppression des réglementations économiques, et un renforcement des valeurs traditionnelles. Leur programme économique repose sur une relance de l'investissement privé, une réforme du marché du travail pour le rendre plus flexible, et une politique d'immigration stricte. Ils souhaitent également une coopération renforcée avec l'Union Européenne tout en préservant la souveraineté nationale.",
+  "Horizons" = "Horizons propose une politique centrée sur le pragmatisme et la modernité. Leur programme inclut des réformes pour renforcer la compétitivité économique, une transition énergétique ambitieuse, et un soutien à l'innovation technologique. Ils sont en faveur de la solidarité européenne et souhaitent renforcer la place de la France dans le monde. Ils défendent une politique économique libérale et une révision des institutions françaises pour une plus grande efficacité.",
+  "Reconquête" = "Reconquête propose une vision conservatrice de la société, avec un programme centré sur la protection de l'identité nationale, la sécurité, et la famille. Leur programme inclut une politique stricte de contrôle de l'immigration, un renforcement des mesures de sécurité publique, et des réformes pour soutenir les entreprises et l'industrie nationale. Ils sont en faveur d'un protectionnisme économique et d'une politique nationale de préférence.",
+  "Extrême Droite" = "L'Extrême Droite soutient une vision nationaliste et autoritaire de la société, avec des priorités sur la sécurité, l'immigration et la souveraineté nationale. Leur programme inclut la fermeture des frontières, la suppression des droits sociaux pour les étrangers, et une politique économique protectionniste pour protéger les industries nationales. Ils prônent également une politique stricte en matière de sécurité et une réduction de l'influence de l'Union Européenne sur la politique française.",
+  "Rassemblement National" = "Le Rassemblement National se concentre sur la défense de l'identité nationale, le renforcement de la sécurité intérieure et une politique ferme d'immigration. Leur programme inclut la suppression de l'immigration illégale, une réduction des droits sociaux pour les étrangers, un retour à la souveraineté nationale totale et un contrôle strict des frontières. En matière économique, ils soutiennent un protectionnisme fort, une baisse des impôts, et un soutien aux industries françaises."
+)
 
 
 
@@ -457,20 +499,16 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Partis politiques
                            tabPanel("Partis politiques",
+                                    h2("Tout savoir sur les partis politiques"),
                                     fluidRow(
-                                      lapply(ordre_partis, function(parti) {
+                                      # Création des boutons pour chaque parti politique avec couleur, taille agrandie, texte en blanc et gestion du texte sur deux lignes
+                                      lapply(names(couleurs), function(parti) {
                                         actionButton(inputId = paste0("parti_", gsub(" ", "_", parti)), 
-                                                     label = parti, 
+                                                     label = HTML(paste0(parti, "<br><br>", tetes_de_liste[parti])),  # Deux sauts de ligne entre le nom du parti et la tête de liste
                                                      icon = icon("check-square"), 
-                                                     style = "width: 150px; height: 150px; font-size: 14px; margin: 5px; background-color: #f4f4f4; border: 1px solid #ddd;")
+                                                     style = paste0("width: 285px; height: 285px; font-size: 20px; font-weight: bold; color: white; margin: 10px; background-color: ", couleurs[parti], 
+                                                                    "; border: 2px solid #ddd; border-radius: 10px; white-space: normal; text-align: center;"))
                                       })
-                                    ),
-                                    # Zone où l'onglet sera mis à jour
-                                    tabsetPanel(id = "onglets_partis",
-                                                tabPanel("Introduction", p("Sélectionnez un parti pour plus d'informations")),
-                                                lapply(ordre_partis, function(parti) {
-                                                  tabPanel(parti, h3(paste("Informations sur le parti:", parti)))
-                                                })
                                     )
                            ),
                            
@@ -669,15 +707,23 @@ server <- function(input, output, session) {
   # Onglet 3
 
   observe({
-    # Crée un événement pour chaque bouton correspondant à un parti
+    # On écoute chaque bouton et on ouvre une fenêtre modale quand un bouton est cliqué
     lapply(ordre_partis, function(parti) {
+      
       observeEvent(input[[paste0("parti_", gsub(" ", "_", parti))]], {
-        # Quand un parti est sélectionné, on met à jour l'onglet pour celui-ci
-        updateTabsetPanel(session, "onglets_partis", selected = parti)
+        
+        showModal(modalDialog(
+          title = paste("Informations sur le parti :", parti),
+          renderUI({
+            # Tu peux mettre ici les informations détaillées sur chaque parti
+            p(paste("Détails du parti", parti, "ici..."))
+          }),
+          easyClose = TRUE,
+          footer = modalButton("Fermer")
+        ))
       })
     })
   })
-}
   
   
   # Onglet 5
