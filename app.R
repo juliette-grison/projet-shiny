@@ -718,7 +718,12 @@ ui <- fluidPage(useShinyjs(),
                                   .navbar-default {
       background-color: black !important;
       border-color: black !important;
-    }
+                                  }
+      
+      /* Cacher le titre de la navbar */
+  .navbar-default .navbar-brand {
+    display: none !important;
+  }
     
     .navbar-default .navbar-brand,
     .navbar-default .navbar-nav > li > a {
