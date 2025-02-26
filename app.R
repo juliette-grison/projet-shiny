@@ -573,9 +573,8 @@ ui <- fluidPage(useShinyjs(),
                 
                 # Bande jaune en haut
                 div(
-                  style = "background-color: yellow; color: black; font-family: 'Fredoka One', sans-serif; 
-             text-align: center; font-size: 24px; padding: 10px; border-bottom: 2px solid black;",
-             "Les législatives 2024 POUR LES NULS"
+                  class = "bande-jaune",
+                  "Les législatives 2024 POUR LES NULS"
                 ),
                 
                 # Onglets
@@ -714,6 +713,26 @@ ui <- fluidPage(useShinyjs(),
                 tags$head(
                   tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"),
                   tags$style(HTML("
+                                  /* Bande jaune */
+                                  .bande-jaune {
+    background-color: yellow;
+    color: black;
+    font-family: 'Fredoka One', sans-serif;
+    text-align: center;
+    font-size: 24px;
+    padding: 10px;
+    border-bottom: 2px solid black;
+    position: fixed; /* Fixe la barre en haut */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  body {
+    padding-top: 60px; /* Ajoute un espace pour éviter que la barre cache le contenu */
+  }
+  
       /* Mettre le titre des onglets en noir */
                                   .navbar-default {
       background-color: black !important;
