@@ -747,27 +747,31 @@ ui <- fluidPage(useShinyjs(),
                                     ),
                            
                            # Onglet Résultats
-                           tabPanel("Résultats", fluidRow(
-                             # Titre de la page
-                             column(12, h2("Résultats des élections législatives de 2024")),
-                             
-                             # Texte explicatif avec moins de marge
-                             column(12, div(class = "texte-informations"), HTML(intro_onglet5)),
-                             
-                             # Réduire l'espace entre le texte et le graphique
-                             column(12, girafeOutput("assemblee_graph", height = "600px")),
-                             
-                             # Carte et tableau
-                             selectizeInput("recherche3", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
-                             actionButton("bouton3", "Chercher"),
-                             leafletOutput("ma_carte2", height = "500px"),
-                             h3("Vous résidez dans une collectivité d'outre-mer ou êtes un ressortissant français vivant à l'étranger ? Retrouvez votre circonscription ici."),
-                             selectizeInput("recherche4", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
-                             actionButton("bouton4", "Chercher"),
-                             h3(textOutput("titre_tableau2")),
-                             dataTableOutput("mon_tableau2")
-                           ))
-                ),
+                           tabPanel("Résultats", 
+                                    tabPanel("Résultats",
+                                             # Titre de la page
+                                             h2("Résultats des élections législatives de 2024"),
+                                             
+                                             # Texte explicatif avec la classe "texte-informations"
+                                             div(class = "texte-informations", HTML(intro_onglet5)),
+                                             
+                                             # Graphique
+                                             girafeOutput("assemblee_graph", height = "600px"),
+                                             
+                                             # Carte et tableau
+                                             selectizeInput("recherche3", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+                                             actionButton("bouton3", "Chercher"),
+                                             leafletOutput("ma_carte2", height = "500px"),
+                                             
+                                             h3("Vous résidez dans une collectivité d'outre-mer ou êtes un ressortissant français vivant à l'étranger ? Retrouvez votre circonscription ici."),
+                                             
+                                             selectizeInput("recherche4", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
+                                             actionButton("bouton4", "Chercher"),
+                                             
+                                             h3(textOutput("titre_tableau2")),
+                                             dataTableOutput("mon_tableau2")
+                                    )
+                                    ),
                 
                 # Ajout des styles CSS
                 tags$head(
@@ -911,6 +915,7 @@ function updateText() {
     }
     "))
                 )
+)
 )
 
 server <- function(input, output, session) {
