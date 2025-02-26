@@ -37,8 +37,8 @@ intro_onglet1 <- "
 Les élections législatives approchent à grand pas et vous n’y connaissez rien en politique ou souhaitez approfondir votre savoir élémentaire sur leur fonctionnement ? 
 Ce site est fait pour vous ! Que ce soit la première fois que vous allez voter, ou même si vous êtes un habitué des urnes, ici, on vous explique tout ! 
 Vous trouverez une brève présentation concernant l’utilité des élections législatives et de l’Assemblée Nationale, leur utilité, leur fonctionnement, et leur enjeux à l’échelle du pays. 
-On vous offre également toutes les ressources nécessaires pour voter pour la première fois (ou pas), afin que votre expérience pour ces élections se fasse en toute sérénité : où voter, quoi apporter, comment voter de l’étranger, etc. Bonne navigation sur notre site !
-<br>"
+On vous offre également toutes les ressources nécessaires pour voter pour la première fois (ou pas), afin que votre expérience pour ces élections se déroule en toute sérénité : où voter, quoi apporter, comment voter de l’étranger, etc. Bonne navigation sur notre site !
+"
 
 partie1_onglet1 <- "<br>
 <p>Les élections législatives servent à élire les députés. Les députés siègent à l'Assemblée nationale. Ils sont élus au suffrage universel direct par les électeurs français inscrits sur les listes électorales. Le mode de scrutin est un scrutin majoritaire à 2 tours.</p>
@@ -338,11 +338,82 @@ telechargement <- c(
 
 # ----- ONGLET 4 : COMMENT VOTER ? -----
 
+intro_onglet4 <- "<p>
+        Avant toute chose, il faut vous assurer d'être inscrits sur les listes électorales. 
+        Le jour de vos 18 ans, vous êtes automatiquement inscrits mais en cas de doute, 
+        vous pouvez vérifier votre situation électorale en utilisant le service en ligne du 
+        <a href=\"https://www.service-public.fr/particuliers/actualites/A15421\" target=\"_blank\">
+            Service Public
+        </a>.
+    </p>
+<br> <p> Une fois que vous êtes inscrits et que vous connaissez la [circonscription : lien de la carte de l’onglet 2] dans laquelle 
+vous devez aller voter, référez vous à votre situation le jour du vote :</p> <br> 
+"
+
+# Que faire pour se préparer aux élections
+presence <- '<p>
+    Rendez-vous à votre bureau de vote en vous fournissant de :
+</p>
+<ul>
+    <li><strong>Votre pièce d’identité :</strong> carte nationale d’identité (CNI), passeport, etc.</li>
+    <li><strong>Votre carte électorale :</strong> il est recommandé de se présenter muni de sa carte électorale mais elle est facultative. 
+        Si vous ne l’avez pas, vous pourrez quand même voter à condition de présenter une pièce d’identité.
+    </li>
+</ul>
+
+<p>
+    <span style="color: #0077cc; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
+    Il est possible de voter en présentant uniquement sa carte électorale dans les communes de moins de 1 000 habitants. 
+    Vous devez néanmoins pouvoir prouver votre identité si le président du bureau de vote vous le demande.
+</p>'
 
 
+absence <- '<p>
+    Pas de panique ! Si vous êtes absent ou si vous n’êtes pas en mesure de vous déplacer en bureau de vote pour les élections législatives, 
+    vous pouvez donner procuration à toute personne de votre choix à condition qu’elle soit inscrite sur une liste électorale 
+    (pas nécessairement dans la même commune que vous).
+</p>
+
+<p>
+    Vous pouvez effectuer une procuration pour un seul tour ou pour les deux. Le jour du vote, la personne désignée devra 
+    se rendre dans votre bureau de vote pour voter à votre place.
+</p>
+
+<p>
+    <strong>Comment faire une demande de procuration ?</strong><br>
+    Rendez-vous sur le téléservice 
+    <a href="https://www.service-public.fr/particuliers/vosdroits/R58939" target="_blank" style="color: #0077cc; font-weight: bold;">
+        Maprocuration
+    </a>.
+</p>'
+
+# Comment fonctionne le vote en fonction de votre lieu d’habitation ?
+
+vote_territoire_france <- '<p>
+    Vous pouvez voter :
+</p>
+
+<ul>
+    <li>Soit en allant en personne au bureau de vote avec un justificatif d’identité</li>
+    <li>Soit par procuration</li>
+</ul>
+
+<p>
+    <span style="color: #0077cc; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
+    Le bureau de vote est ouvert de 8h à 18h (heures légales locales), sauf exception.
+</p>'
 
 
+vote_etranger <- '<p>
+    Vous pouvez voter :
+</p>
 
+<ul>
+    <li>Soit en vous rendant en personne au bureau de vote (au consulat ou ambassade) avec un justificatif d’identité</li>
+    <li>Soit par procuration</li>
+    <li>Soit par correspondance</li>
+    <li>Soit par internet. Pour cela, il peut être nécessaire de mettre à jour vos coordonnées figurant dans le registre des Français de l’étranger.</li>
+</ul>'
 
 
 
@@ -500,6 +571,13 @@ library(tidyr)
 ui <- fluidPage(useShinyjs(),
                 theme = shinytheme("readable"),
                 
+                # Bande jaune en haut
+                div(
+                  style = "background-color: yellow; color: black; font-family: 'Fredoka One', sans-serif; 
+             text-align: center; font-size: 24px; padding: 10px; border-bottom: 2px solid black;",
+             "Les législatives 2024 POUR LES NULS"
+                ),
+                
                 # Onglets
                 navbarPage("Les législatives 2024 pour les nuls",
                            
@@ -636,6 +714,17 @@ ui <- fluidPage(useShinyjs(),
                 tags$head(
                   tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"),
                   tags$style(HTML("
+      /* Mettre le titre des onglets en noir */
+                                  .navbar-default {
+      background-color: black !important;
+      border-color: black !important;
+    }
+    
+    .navbar-default .navbar-brand,
+    .navbar-default .navbar-nav > li > a {
+      color: white !important;
+    }
+    
       .leaflet-control-zoom {
         position: absolute !important;
         bottom: 10px;
