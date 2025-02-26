@@ -346,7 +346,8 @@ telechargement <- c(
 
 # ----- ONGLET 4 : COMMENT VOTER ? -----
 
-intro_onglet4 <- "<p>
+intro_onglet4 <- "<p> <strong> Que faire pour se préparer aux élections ? </strong> </p>
+<p>
         Avant toute chose, il faut vous assurer d'être inscrits sur les listes électorales. 
         Le jour de vos 18 ans, vous êtes automatiquement inscrits mais en cas de doute, 
         vous pouvez vérifier votre situation électorale en utilisant le service en ligne du 
@@ -354,8 +355,8 @@ intro_onglet4 <- "<p>
             Service Public
         </a>.
     </p>
-<br> <p> Une fois que vous êtes inscrits et que vous connaissez la [circonscription : lien de la carte de l’onglet 2] dans laquelle 
-vous devez aller voter, référez vous à votre situation le jour du vote :</p> <br> 
+<br> <p> Une fois que vous êtes inscrits et que vous connaissez la circonscription dans laquelle 
+vous devez aller voter, référez-vous à votre situation le jour du vote.</p> <br> 
 "
 
 # Que faire pour se préparer aux élections
@@ -370,7 +371,7 @@ presence <- '<p>
 </ul>
 
 <p>
-    <span style="color: #0077cc; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
+    <span style="color: #ffe436; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
     Il est possible de voter en présentant uniquement sa carte électorale dans les communes de moins de 1 000 habitants. 
     Vous devez néanmoins pouvoir prouver votre identité si le président du bureau de vote vous le demande.
 </p>'
@@ -390,14 +391,14 @@ absence <- '<p>
 <p>
     <strong>Comment faire une demande de procuration ?</strong><br>
     Rendez-vous sur le téléservice 
-    <a href="https://www.service-public.fr/particuliers/vosdroits/R58939" target="_blank" style="color: #0077cc; font-weight: bold;">
+    <a href="https://www.service-public.fr/particuliers/vosdroits/R58939" target="_blank" rel="noopener noreferrer" style="color: #0077cc; font-weight: bold;">
         Maprocuration
     </a>.
 </p>'
 
 # Comment fonctionne le vote en fonction de votre lieu d’habitation ?
 
-vote_territoire_france <- '<p>
+vote_france <- '<p>
     Vous pouvez voter :
 </p>
 
@@ -407,7 +408,7 @@ vote_territoire_france <- '<p>
 </ul>
 
 <p>
-    <span style="color: #0077cc; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
+    <span style="color: #ffe436; font-size: 1.2em;">&#9432;</span> <strong>À savoir</strong><br>
     Le bureau de vote est ouvert de 8h à 18h (heures légales locales), sauf exception.
 </p>'
 
@@ -427,6 +428,14 @@ vote_etranger <- '<p>
 
 
 # ----- ONGLET 5 : RESULTATS - Juliette -----
+
+# Texte introductif
+intro_onglet5 <- "<p>Les élections législatives sont terminées et vous souhaitez connaître les résultats ? 
+Vous êtes au bon endroit ! 
+On vous présente la répartition des 577 sièges dans l'hémicycle de l'Assemblée Nationale avec le programme des principaux partis présents. 
+Vous souhaitez également savoir qui a été élu proche de chez vous ? 
+Pas de soucis ! 
+Vous trouverez sur cette page une carte intéractive avec l’élu de votre circonscription.</p>"
 
 library(ggplot2)
 library(ggiraph)
@@ -595,7 +604,7 @@ ui <- fluidPage(useShinyjs(),
                                         # Colonne principale avec le texte
                                         div(class = "contenu-principal",
                                             div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS")),
-                                            div(class = "texte-informations", p(intro_onglet1)),
+                                            div(class = "texte-informations", HTML(intro_onglet1)),
                                             
                                             tags$div(
                                               img(src = "https://www.savigny-le-temple.fr/Statics/Actus/Actus_2024/06_Juin_2024/300624-elections-legislatives-resultats.jpg", 
@@ -603,7 +612,7 @@ ui <- fluidPage(useShinyjs(),
                                             ),
                                             
                                             # Les sections déroulantes restent ici
-                                            div(class = "titre-page",
+                                            div(class = "texte-informations",
                                                 actionButton("toggle_presentation", "Présentation des élections législatives ⬇", class = "btn btn-primary btn-deroulant")
                                             ),
                                             
@@ -611,7 +620,7 @@ ui <- fluidPage(useShinyjs(),
                                               div(id = "texte_presentation", class = "texte-informations", HTML(partie1_onglet1))
                                             ),
                                             
-                                            div(class = "titre-page",
+                                            div(class = "texte-informations",
                                                 actionButton("toggle_histoire", "Histoire des élections de l’Assemblée Nationale ⬇", class = "btn btn-primary btn-deroulant")
                                             ),
                                             
@@ -619,7 +628,7 @@ ui <- fluidPage(useShinyjs(),
                                               div(id = "texte_histoire", class = "texte-informations", HTML(partie2_onglet1))
                                             ),
                                             
-                                            div(class = "titre-page",
+                                            div(class = "texte-informations",
                                                 actionButton("toggle_fonctionnement", "Fonctionnement des élections ⬇", class = "btn btn-primary btn-deroulant")
                                             ),
                                             
@@ -627,7 +636,7 @@ ui <- fluidPage(useShinyjs(),
                                               div(id = "texte_fonctionnement", class = "texte-informations", HTML(partie3_onglet1))
                                             ),
                                             
-                                            div(class = "titre-page",
+                                            div(class = "texte-informations",
                                                 actionButton("toggle_important", "Pourquoi est-ce important d'aller voter ? ⬇", class = "btn btn-primary btn-deroulant")
                                             ),
                                             
@@ -685,7 +694,57 @@ ui <- fluidPage(useShinyjs(),
                            ),
                            
                            # Onglet Comment voter ?
-                           tabPanel("Comment voter ?"),
+                           tabPanel("Comment voter ?",
+                                    div(class = "titre-page", h2("Comment voter ?")),
+                                    
+                                    div(class = "texte-informations", HTML(intro_onglet4),
+                                    
+                                    # Conteneur principal
+                                    div(style = "width: 100%; display: flex; flex-direction: column; gap: 20px;",
+                                        
+                                        # Présence / absence
+                                        div(style = "display: flex; flex-direction: column; align-items: flex-start;",
+                                            
+                                            # Encadrer le label avec une div stylisée
+                                            div(style = "background-color: yellow; border: 2px solid black; padding: 10px; width: fit-content; margin-bottom: 15px; border-radius: 10px; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);",
+                                                "Les 29/30 juin et/ou les 6/7 juillet :"
+                                            ),
+                                            
+                                            div(style = "display: flex; align-items: center; gap: 10px;",
+                                                radioButtons("vote_option", label = NULL,  # SUPPRESSION DU LABEL
+                                                             choices = c("Vous êtes présents dans votre circonscription" = "presence", 
+                                                                         "Vous êtes absents de votre circonscription" = "absence"),
+                                                             selected = character(0), inline = TRUE
+                                                )
+                                            )),
+                                            
+                                            # Textes associés
+                                            uiOutput("presence_text"),
+                                            uiOutput("absence_text")
+                                        ),
+                                        
+                                        # France / Etranger
+                                        div(style = "display: flex; flex-direction: column; align-items: flex-start;",
+                                            
+                                            # Encadrer le label avec une div stylisée
+                                            div(style = "background-color: yellow; border: 2px solid black; padding: 10px; width: fit-content; margin-bottom: 15px; border-radius: 10px; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);",
+                                                "Comment fonctionne le vote en fonction de votre lieu d’habitation ?"
+                                            ),
+                                            
+                                            div(style = "display: flex; align-items: center; gap: 10px;",
+                                                radioButtons("vote_lieu", label = NULL,  # SUPPRESSION DU LABEL
+                                                             choices = c("Vous êtes en France métropolitaine ou dans un département d’Outre Mer" = "vote_france", 
+                                                                         "Vous êtes un.e Français.e résidant à l’étranger" = "vote_etranger"),
+                                                             selected = character(0), inline = TRUE
+                                                )
+                                            ),
+                                            
+                                            # Textes associés
+                                            uiOutput("vote_france_text", style = "margin-bottom: 30px;"),
+                                            uiOutput("vote_etranger_text", style = "margin-bottom: 30px;")
+                                        )
+                                    )
+                                    ),
                            
                            # Onglet Résultats
                            tabPanel("Résultats", fluidRow(
@@ -693,7 +752,7 @@ ui <- fluidPage(useShinyjs(),
                              column(12, h2("Résultats des élections législatives de 2024")),
                              
                              # Texte explicatif avec moins de marge
-                             column(12, p("Les élections législatives sont terminées et vous souhaitez connaître les résultats ? Vous êtes au bon endroit ! On vous présente la répartition des 577 sièges dans l'hémicycle de l'Assemblée Nationale avec le programme des principaux partis présents. Vous souhaitez également savoir qui a été élu proche de chez vous ? Pas de soucis ! Vous trouverez sur cette page une carte intéractive avec l’élu de votre circonscription.")),
+                             column(12, div(class = "texte-informations"), HTML(intro_onglet5)),
                              
                              # Réduire l'espace entre le texte et le graphique
                              column(12, girafeOutput("assemblee_graph", height = "600px")),
@@ -727,7 +786,7 @@ ui <- fluidPage(useShinyjs(),
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 1000;
+    z-index: 9999;
   }
 
   body {
@@ -750,6 +809,11 @@ ui <- fluidPage(useShinyjs(),
       color: white !important;
     }
   
+  /* Espacement des boutons déroulants de l'onglet 1 */
+  .texte-informations .btn-deroulant {
+    margin-bottom: 15px; /* Ajuste la valeur selon tes préférences */
+  }
+
   /* Qui sommes nous */
   .contenu-onglet {
     display: flex; /* Active la mise en page en colonnes */
@@ -822,12 +886,29 @@ ui <- fluidPage(useShinyjs(),
         background-color: yellow !important; /* Fond jaune */
         color: black !important; /* Texte noir */
         border: 1px solid black !important; /* Bordure noire */
+        
       }
       
       /* Modifier le style des boutons au survol */
       .btn.btn-primary:hover {
         background-color: gold !important; /* Jaune plus foncé au survol */
       }
+
+/* Onglet 4 mise en page*/
+function updateText() {
+      // Cacher tous les textes d'abord
+      document.getElementById('presence_text').style.display = 'none';
+      document.getElementById('absence_text').style.display = 'none';
+      
+      // Vérifier si le bouton 'présence' est sélectionné
+      if (document.getElementById('presence').checked) {
+        document.getElementById('presence_text').style.display = 'block';
+      }
+      // Vérifier si le bouton 'absence' est sélectionné
+      else if (document.getElementById('absence').checked) {
+        document.getElementById('absence_text').style.display = 'block';
+      }
+    }
     "))
                 )
 )
@@ -1000,9 +1081,47 @@ server <- function(input, output, session) {
     )
   })
   
+  # Onglet 4
   
+  # Texte pour "Présent"
+  output$presence_text <- renderUI({
+    if (!is.null(input$vote_option) && input$vote_option == "presence") {
+      return(HTML(presence))
+    }
+    return(NULL)
+  })
   
+  # Texte pour "Absent"
+  output$absence_text <- renderUI({
+    if (!is.null(input$vote_option) && input$vote_option == "absence") {
+      return(HTML(absence))
+    }
+    return(NULL)
+  })
   
+  # Texte pour "Vote en France"
+  output$vote_france_text <- renderUI({
+    if (!is.null(input$vote_lieu) && input$vote_lieu == "vote_france") {
+      return(HTML(vote_france))
+    }
+    return(NULL)
+  })
+  
+  # Texte pour "Vote à l'étranger"
+  output$vote_etranger_text <- renderUI({
+    if (!is.null(input$vote_lieu) && input$vote_lieu == "vote_etranger") {
+      return(HTML(vote_etranger))
+    }
+    return(NULL)
+  })
+  
+  # Texte pour "Vote à l'étranger"
+  output$vote_etranger_text <- renderUI({
+    if (!is.null(input$vote_lieu) && input$vote_lieu == "vote_etranger") {
+      return(HTML(vote_etranger))
+    }
+    return(NULL)
+  })
   
   
   # Onglet 5
