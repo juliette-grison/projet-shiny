@@ -116,7 +116,15 @@ La fonction principale d’un député est de représenter et défendre les int�
 <br>"
 
 
-
+auteurs_onglet1 <- "<p> <strong> Qui sommes nous ? </strong> </p>
+<p> Ce site a été conçu dans le cadre d’un projet R-Shiny du Master Économétrie et Statistiques de l’IAE Nantes <em>(promotion 2026)</em>.
+<p> Des questions, des remarques, des suggestions ? </p>
+<p>N’hésitez pas à nous contacter !</p>
+<ul>
+    <li> <a href='mailto:8flocht8@gmail.com'>Florian Crochet</a> </li>
+    <li> <a href='mailto:juliette.grison@gmail.com'>Juliette Grison</a> </li>
+</ul>
+"
 
 
 # ----- ONGLET 2 : CARTE DES CIRCONSCRIPTIONS - Florian -----
@@ -582,63 +590,56 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Informations générales
                            tabPanel("Informations générales",
-                                    div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS !")),
-                                    div(class = "texte-informations",
-                                        p(intro_onglet1)
-                                    ),
-                                    
-                                    tags$div(
-                                      img(src = "https://www.savigny-le-temple.fr/Statics/Actus/Actus_2024/06_Juin_2024/300624-elections-legislatives-resultats.jpg", 
-                                          class = "image-intro")
-                                    ),
-                                    
-                                    # Bouton déroulant avec flèche pour la première section
-                                    div(class = "titre-page",
-                                        actionButton("toggle_presentation", "Présentation des élections législatives ⬇", class = "btn btn-primary btn-deroulant")
-                                    ),
-                                    
-                                    # Contenu caché par défaut pour la première section
-                                    hidden(
-                                      div(id = "texte_presentation", class = "texte-informations",
-                                          HTML(partie1_onglet1)
-                                      )
-                                    ),
-                                    
-                                    
-                                    # Bouton déroulant pour l'historique des élections
-                                    div(class = "titre-page",
-                                        actionButton("toggle_histoire", "Histoire des élections de l’Assemblée Nationale ⬇", class = "btn btn-primary btn-deroulant")
-                                    ),
-                                    
-                                    # Contenu caché pour la section "Histoire des élections"
-                                    hidden(
-                                      div(id = "texte_histoire", class = "texte-informations",
-                                          HTML(partie2_onglet1)
-                                      )
-                                    ),
-                                    
-                                    # Bouton déroulant pour le fonctionnement des élections
-                                    div(class = "titre-page",
-                                        actionButton("toggle_fonctionnement", "Fonctionnement des élections ⬇", class = "btn btn-primary btn-deroulant")
-                                    ),
-                                    
-                                    # Contenu caché pour la section "Fonctionnement des élections"
-                                    hidden(
-                                      div(id = "texte_fonctionnement", class = "texte-informations",
-                                          HTML(partie3_onglet1)
-                                      )
-                                    ),
-                                    
-                                    # Bouton déroulant pour l'importance des élections
-                                    div(class = "titre-page",
-                                        actionButton("toggle_important", "Pourquoi est-ce important d'aller voter ? ⬇", class = "btn btn-primary btn-deroulant")
-                                    ),
-                                    
-                                    # Contenu caché pour la section "Fonctionnement des élections"
-                                    hidden(
-                                      div(id = "texte_important", class = "texte-informations",
-                                          HTML(partie4_onglet1)
-                                      )
+                                    div(class = "contenu-onglet",
+                                        
+                                        # Colonne principale avec le texte
+                                        div(class = "contenu-principal",
+                                            div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS")),
+                                            div(class = "texte-informations", p(intro_onglet1)),
+                                            
+                                            tags$div(
+                                              img(src = "https://www.savigny-le-temple.fr/Statics/Actus/Actus_2024/06_Juin_2024/300624-elections-legislatives-resultats.jpg", 
+                                                  class = "image-intro")
+                                            ),
+                                            
+                                            # Les sections déroulantes restent ici
+                                            div(class = "titre-page",
+                                                actionButton("toggle_presentation", "Présentation des élections législatives ⬇", class = "btn btn-primary btn-deroulant")
+                                            ),
+                                            
+                                            hidden(
+                                              div(id = "texte_presentation", class = "texte-informations", HTML(partie1_onglet1))
+                                            ),
+                                            
+                                            div(class = "titre-page",
+                                                actionButton("toggle_histoire", "Histoire des élections de l’Assemblée Nationale ⬇", class = "btn btn-primary btn-deroulant")
+                                            ),
+                                            
+                                            hidden(
+                                              div(id = "texte_histoire", class = "texte-informations", HTML(partie2_onglet1))
+                                            ),
+                                            
+                                            div(class = "titre-page",
+                                                actionButton("toggle_fonctionnement", "Fonctionnement des élections ⬇", class = "btn btn-primary btn-deroulant")
+                                            ),
+                                            
+                                            hidden(
+                                              div(id = "texte_fonctionnement", class = "texte-informations", HTML(partie3_onglet1))
+                                            ),
+                                            
+                                            div(class = "titre-page",
+                                                actionButton("toggle_important", "Pourquoi est-ce important d'aller voter ? ⬇", class = "btn btn-primary btn-deroulant")
+                                            ),
+                                            
+                                            hidden(
+                                              div(id = "texte_important", class = "texte-informations", HTML(partie4_onglet1))
+                                            )
+                                        ),
+                                        
+                                        # Colonne de droite avec la boîte "Qui sommes-nous ?"
+                                        div(class = "auteurs-box",
+                                            HTML(auteurs_onglet1)
+                                        )
                                     )
                            ),
                            
@@ -748,6 +749,37 @@ ui <- fluidPage(useShinyjs(),
     .navbar-default .navbar-nav > li > a {
       color: white !important;
     }
+  
+  /* Qui sommes nous */
+  .contenu-onglet {
+    display: flex; /* Active la mise en page en colonnes */
+    align-items: flex-start; /* Aligne le contenu en haut */
+    justify-content: space-between; /* Sépare les éléments */
+}
+
+.contenu-principal {
+    flex: 2; /* Prend 2/3 de l'espace */
+    max-width: 85%; /* Limite la largeur du texte pour laisser de la place à la boîte */
+}
+
+.auteurs-box {
+    flex: 1; /* Prend 1/3 de l'espace */
+    max-width: 30%; /* Taille maximale de la boîte */
+    background-color: yellow;
+    padding: 15px;
+    border: 2px solid black;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+
+/* Rendre la boîte fixe pendant le scroll */
+    position: sticky;
+    top: 250px; /* La boîte reste visible à partir de 20px du haut */
+    align-self: flex-start; /* Important pour bien s'aligner */
+
+
+}
     
       .leaflet-control-zoom {
         position: absolute !important;
