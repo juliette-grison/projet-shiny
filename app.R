@@ -447,8 +447,8 @@ create_assemblee_graph <- function() {
     Parti = c("Nouveau Front Populaire", "Gauche", "Ensemble", "Centre", "Régionalistes", 
               "Les Républicains", "Droite", "Rassemblement National", "Divers"),
     Sieges = c(182, 13, 168, 6, 4, 46, 14, 143, 1),  # Nombre de sièges par parti
-    Couleur = c("firebrick4", "firebrick1", "gold", "gold3", "lightgoldenrod4", 
-                "dodgerblue", "dodgerblue3", "navy", "gray47") # Couleurs associées
+    Couleur = c("#D73027", "darksalmon", "#FFD700", "lightgoldenrod1", "goldenrod4", 
+                "dodgerblue", "dodgerblue3", "#041E42", "gray47") # Couleurs associées
   )
   
   # Nombre total de sièges et de rangées
@@ -490,8 +490,8 @@ create_assemblee_graph <- function() {
   df_sieges <- df_sieges %>%
     left_join(resultats_assemblee, by = "Parti")  # Jointure pour obtenir les couleurs
   
-  # Création de la colonne pour les tooltips interactifs (seulement le nom du parti, pas le numéro de siège)
-  df_sieges$tooltip <- df_sieges$Parti
+  # Création de la colonne pour les tooltips interactifs (nom du parti et nombre de siège)
+  df_sieges$tooltip <- paste(df_sieges$Parti, "-", df_sieges$Sieges, "sièges")
   
   # Création du graphique interactif
   gg <- ggplot(df_sieges, aes(x, y, color = Parti, tooltip = tooltip, data_id = Parti)) +
@@ -599,11 +599,13 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Informations générales
                            tabPanel("Informations générales",
+                                    
+                                    div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS")),
                                     div(class = "contenu-onglet",
                                         
                                         # Colonne principale avec le texte
                                         div(class = "contenu-principal",
-                                            div(class = "titre-page", h2("Les législatives 2024 POUR LES NULS")),
+                                            
                                             div(class = "texte-informations", HTML(intro_onglet1)),
                                             
                                             tags$div(
@@ -654,7 +656,7 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Carte des circonscriptions
                            tabPanel("Carte des circonscriptions",
-                                    h2("Candidats et circonscriptions : faites votre recherche"),
+                                    div(class = "titre-page", h2("Candidats et circonscriptions : faites votre recherche")),
                                     selectizeInput("recherche", "Rechercher une ville", choices = NULL, selected = "", multiple = FALSE),
                                     actionButton("bouton", "Chercher"),
                                     leafletOutput("ma_carte", height = "500px"),
@@ -667,29 +669,33 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Partis politiques
                            tabPanel("Partis politiques",
-                                    h2("Tout savoir sur les partis politiques"),
-                                    fluidRow(
-                                      # Génération des boutons avec deux colonnes par ligne
-                                      lapply(names(couleurs2), function(ordre_partis2) {
-                                        column(
-                                          width = 6,  # Chaque bouton occupe la moitié d'une ligne (2 par ligne)
-                                          tagList(
-                                            actionButton(
-                                              inputId = paste0("parti_", gsub(" ", "_", ordre_partis2)), 
-                                              label = HTML(paste0(
-                                                "<div style='display: flex; flex-direction: column; align-items: center;'>",
-                                                "<img src='/", gsub(" ", "_", ordre_partis2), ".png' ",
-                                                "style='width: 75%; height: 75%; object-fit: cover; display: block; margin-bottom: 10px; border-radius: 10px;'>",
-                                                "<b>", ordre_partis2, "</b>",
-                                                "</div>"
-                                              )),  
-                                              style = paste0("width: 100%; height: 594px; font-size: 30px; font-weight: bold; color: white; margin: 10px; background-color: ", 
-                                                             couleurs2[ordre_partis2], 
-                                                             "; border: 2px solid #ddd; border-radius: 10px; white-space: normal; text-align: center; display: flex; align-items: center; justify-content: center;")
+                                    div(class = "titre-page", h2("Tout savoir sur les principaux partis politiques")),
+                                    
+                                    # Conteneur pour centrer et limiter la largeur
+                                    div(style = "width: 90%; margin: auto;",  
+                                        fluidRow(
+                                          # Génération des boutons avec deux colonnes par ligne
+                                          lapply(names(couleurs2), function(ordre_partis2) {
+                                            column(
+                                              width = 6,  # Chaque bouton occupe la moitié d'une ligne (2 par ligne)
+                                              tagList(
+                                                actionButton(
+                                                  inputId = paste0("parti_", gsub(" ", "_", ordre_partis2)), 
+                                                  label = HTML(paste0(
+                                                    "<div style='display: flex; flex-direction: column; align-items: center;'>",
+                                                    "<img src='/", gsub(" ", "_", ordre_partis2), ".png' ",
+                                                    "style='width: 75%; height: 75%; object-fit: cover; display: block; margin-bottom: 10px; border-radius: 10px;'>",
+                                                    "<b>", ordre_partis2, "</b>",
+                                                    "</div>"
+                                                  )),  
+                                                  style = paste0("width: 100%; height: 594px; font-size: 30px; font-weight: bold; color: white; margin: 10px; background-color: ", 
+                                                                 couleurs2[ordre_partis2], 
+                                                                 "; border: 2px solid #ddd; border-radius: 10px; white-space: normal; text-align: center; display: flex; align-items: center; justify-content: center;")
+                                                )
+                                              )
                                             )
-                                          )
+                                          })
                                         )
-                                      })
                                     )
                            ),
                            
@@ -707,13 +713,13 @@ ui <- fluidPage(useShinyjs(),
                                             
                                             # Encadrer le label avec une div stylisée
                                             div(style = "background-color: yellow; border: 2px solid black; padding: 10px; width: fit-content; margin-bottom: 15px; border-radius: 10px; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);",
-                                                "Les 29/30 juin et/ou les 6/7 juillet :"
+                                                "Les 29/30 juin et/ou les 6/7 juillet vous êtes :"
                                             ),
                                             
                                             div(style = "display: flex; align-items: center; gap: 10px;",
                                                 radioButtons("vote_option", label = NULL,  # SUPPRESSION DU LABEL
-                                                             choices = c("Vous êtes présents dans votre circonscription" = "presence", 
-                                                                         "Vous êtes absents de votre circonscription" = "absence"),
+                                                             choices = c("Présents dans votre circonscription" = "presence", 
+                                                                         "Absents de votre circonscription" = "absence"),
                                                              selected = character(0), inline = TRUE
                                                 )
                                             )),
@@ -728,13 +734,13 @@ ui <- fluidPage(useShinyjs(),
                                             
                                             # Encadrer le label avec une div stylisée
                                             div(style = "background-color: yellow; border: 2px solid black; padding: 10px; width: fit-content; margin-bottom: 15px; border-radius: 10px; box-shadow: 3px 3px 10px rgba(0,0,0,0.2);",
-                                                "Comment fonctionne le vote en fonction de votre lieu d’habitation ?"
+                                                "Votre lieu d’habitation est :"
                                             ),
                                             
                                             div(style = "display: flex; align-items: center; gap: 10px;",
                                                 radioButtons("vote_lieu", label = NULL,  # SUPPRESSION DU LABEL
-                                                             choices = c("Vous êtes en France métropolitaine ou dans un département d’Outre Mer" = "vote_france", 
-                                                                         "Vous êtes un.e Français.e résidant à l’étranger" = "vote_etranger"),
+                                                             choices = c("En France métropolitaine ou dans un département ou une collectivitée d’Outre Mer" = "vote_france", 
+                                                                         "À l’étranger (Français.e résidant hors de France)" = "vote_etranger"),
                                                              selected = character(0), inline = TRUE
                                                 )
                                             ),
@@ -748,12 +754,11 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Résultats
                            tabPanel("Résultats", 
-                                    tabPanel("Résultats",
                                              # Titre de la page
-                                             h2("Résultats des élections législatives de 2024"),
+                                             div(class = "titre-page", h2("Résultats des élections législatives de 2024")),
                                              
                                              # Texte explicatif avec la classe "texte-informations"
-                                             div(class = "texte-informations", HTML(intro_onglet5)),
+                                             div(class = "texte-informations", style = "margin-bottom: 1px;", HTML(intro_onglet5)),
                                              
                                              # Graphique
                                              girafeOutput("assemblee_graph", height = "600px"),
@@ -770,7 +775,6 @@ ui <- fluidPage(useShinyjs(),
                                              
                                              h3(textOutput("titre_tableau2")),
                                              dataTableOutput("mon_tableau2")
-                                    )
                                     ),
                 
                 # Ajout des styles CSS
@@ -912,7 +916,8 @@ function updateText() {
       else if (document.getElementById('absence').checked) {
         document.getElementById('absence_text').style.display = 'block';
       }
-    }
+}
+
     "))
                 )
 )
