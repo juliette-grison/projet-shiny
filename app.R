@@ -669,28 +669,57 @@ ui <- fluidPage(useShinyjs(),
                            
                            # Onglet Partis politiques
                            tabPanel("Partis politiques",
+                                    # Titre de la page (grand titre)
                                     div(class = "titre-page", h2("Tout savoir sur les principaux partis politiques")),
                                     
-                                    # Conteneur pour centrer et limiter la largeur
-                                    div(style = "width: 90%; margin: auto;",  
+                                    # Conteneur pour centrer et limiter la largeur des boutons
+                                    div(style = "width: 90%; margin: auto; display: flex; justify-content: center;",  
                                         fluidRow(
                                           # Génération des boutons avec deux colonnes par ligne
                                           lapply(names(couleurs2), function(ordre_partis2) {
+                                            # Correspondance entre le nom du parti et la tête de liste
+                                            tete_liste <- tetes_de_liste[match(ordre_partis2, names(couleurs2))]
+                                            
+                                            # Chaque bouton occupe la moitié de la largeur de la ligne (2 boutons par ligne)
                                             column(
-                                              width = 6,  # Chaque bouton occupe la moitié d'une ligne (2 par ligne)
+                                              width = 6,  # Chaque bouton occupe 50% de la largeur de la ligne
+                                              style = "display: flex; justify-content: center; padding: 0; margin: 0;",  # Retirer les marges et le padding supplémentaires
                                               tagList(
+                                                # Création du bouton
                                                 actionButton(
                                                   inputId = paste0("parti_", gsub(" ", "_", ordre_partis2)), 
                                                   label = HTML(paste0(
-                                                    "<div style='display: flex; flex-direction: column; align-items: center;'>",
+                                                    # Structure du contenu du bouton avec image, titre et texte
+                                                    "<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 10px;'>",
+                                                    
+                                                    # Image du parti, taille fixe et centrée
                                                     "<img src='/", gsub(" ", "_", ordre_partis2), ".png' ",
-                                                    "style='width: 75%; height: 75%; object-fit: cover; display: block; margin-bottom: 10px; border-radius: 10px;'>",
-                                                    "<b>", ordre_partis2, "</b>",
+                                                    "style='width: 70%; height: auto; object-fit: cover; display: block; margin-bottom: 20px; border-radius: 10px;'>",  # Marge en bas de l'image
+                                                    
+                                                    # Titre du parti, texte agrandi et espacé uniformément
+                                                    "<b style='font-size: 41px; margin-bottom: 5px;'>", ordre_partis2, "</b>",  # Espacement entre le titre et la photo
+                                                    
+                                                    # Ajout de la tête de liste, texte agrandi
+                                                    "<p style='font-size: 23px; margin-top: 5px; margin-bottom: 10px;'>avec ", tete_liste, "</p>",  # Espacement entre la description et le titre
+                                                    
                                                     "</div>"
                                                   )),  
-                                                  style = paste0("width: 100%; height: 594px; font-size: 30px; font-weight: bold; color: white; margin: 10px; background-color: ", 
-                                                                 couleurs2[ordre_partis2], 
-                                                                 "; border: 2px solid #ddd; border-radius: 10px; white-space: normal; text-align: center; display: flex; align-items: center; justify-content: center;")
+                                                  
+                                                  # Style du bouton : dimensions fixes, texte et image agrandis
+                                                  style = paste0(
+                                                    "width: 700px;",  # Largeur fixe de 700px pour tous les boutons
+                                                    "height: 575px;",  # Hauteur fixe de 600px pour tous les boutons
+                                                    "font-size: 22px;",  # Taille du texte du bouton
+                                                    "font-weight: bold;",  # Texte en gras
+                                                    "color: white;",  # Couleur du texte en blanc
+                                                    "margin: 10px 10px;",  # Marges autour du bouton
+                                                    "background-color: ", couleurs2[ordre_partis2],  # Couleur de fond du bouton
+                                                    "; border: 2px solid #ddd;",  # Bordure du bouton
+                                                    "border-radius: 10px;",  # Coins arrondis du bouton
+                                                    "white-space: normal;",  # Texte ne doit pas être coupé
+                                                    "text-align: center;",  # Centrer le texte
+                                                    "display: flex; align-items: center; justify-content: center;"  # Centrage du contenu dans le bouton
+                                                  )
                                                 )
                                               )
                                             )
@@ -1226,6 +1255,11 @@ server <- function(input, output, session) {
         )
     })
   })
+  
+  # Maintien des sorties actives même lorsqu'elles sont cachées (améliore la fluidité)
+  outputOptions(output, "ma_carte", suspendWhenHidden = FALSE)
+  outputOptions(output, "assemblee_graph", suspendWhenHidden = FALSE)
+  outputOptions(output, "ma_carte2", suspendWhenHidden = FALSE)
   
 }
   
